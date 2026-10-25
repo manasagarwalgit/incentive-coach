@@ -11,7 +11,7 @@
 > | After fixes (3 runs per case) | dev **33/33** (`183727`), held-out **12/12** (`183903`) |
 > | Minimal-prompt ablation | dev **28/30** vs full prompt **30/30**; held-out drops more: **4/6** vs **6/6** (excluding case 13) |
 > | Judge canaries | **4/4** caught |
-> | Human agreement with the judge | pending: **_/10** (`docs/judge_check.md`) |
+> | Human agreement with the judge | **10/10** (`docs/judge_check.md`) |
 >
 > Agent model: `claude-sonnet-5-5`, the same model the product ships with. Judge: `claude-opus-5-5`.
 
@@ -161,14 +161,14 @@ Once `get_payout_totals` was built to fix that, case 13 was no longer unseen, so
 
 The canaries are blatant, one rule broken each, and each was run once. They show the judge can fail a clear violation, not that it catches subtle ones.
 
-**Human agreement: _/10** (`docs/judge_check.md`).
+**Human agreement: 10/10** (`docs/judge_check.md`).
 
 ## Limitations
 
 - **3 runs per case is a small sample.** 3/3 is consistent with a true failure rate well above zero; a case failing 1 run in 10 would pass all 3 runs about 73% of the time. The pass rates show that something works, not how reliably.
 - **The held-out cases were written by the same coding agent** that built the tools and the prompt (Claude Code, Opus). They are unseen by the project owner, not by the system that wrote them, so they may share its blind spots.
 - **The data is synthetic.** It's 50 made-up reps on day 24 of 30, generated to include specific edge cases (a late starter, three bulk orders). Real exports will have messier names, ids and distributions.
-- **Judge agreement is pending a hand-check.** `docs/judge_check.md` lists 10 judged answers for the project owner to grade. All 10 verdicts are "yes", so the hand-check can find false passes but not false fails. The canaries cover the other direction, but only for blatant violations. Until the hand-check is filled in, judge-based passes rest on the judge alone.
+- **The judge hand-check is a small, one-sided sample.** The project owner agreed with the judge on 10 of 10 answers in `docs/judge_check.md`. All 10 verdicts were "yes", so the check could find false passes but not false fails. The canaries cover the other direction, but only for blatant violations, and 10 items can't rule out an occasional misjudgment.
 - **The pace check is a pattern match.** It catches numeric multipliers ("3x", "3 times", ranges, bounds) but not words like "double" or "twice". It also matches reps by first name or id, so a sentence naming a rep in passing narrows which ratios count.
 - **Re-scored judge checks reuse old verdicts.** `evals/rescore.py` doesn't ask the judge again, so re-scored files from before judge reasons existed have verdicts with no reasons.
 
