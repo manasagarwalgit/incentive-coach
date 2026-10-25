@@ -17,6 +17,12 @@
 # Results are saved to evals/results/<timestamp>.json (committed as
 # evidence) and a pass-rate table is printed.
 #
+# Each run ends as "pass", "fail" or "error". "error" means an API call broke
+# (overloaded, rate limited, network...), so the agent was never really
+# tested; those runs are counted separately and left out of the pass rate.
+# If the very first API call fails on the key, permissions or billing, the
+# whole run stops at once, since every other case would fail the same way.
+#
 # The API key is read from ANTHROPIC_API_KEY in .env and is never printed.
 
 import argparse
@@ -45,6 +51,9 @@ RESULTS_DIR = ROOT / "evals" / "results"
 
 # Stop a run if the agent keeps calling tools without ever answering.
 MAX_TURNS = 10
+
+# How many API calls have succeeded so far (see create_message).
+api_calls_ok = 0
 
 # The four tools, by name, as plain Python functions.
 TOOL_FUNCTIONS = {
@@ -85,6 +94,35 @@ def call_tool(name, tool_input):
 
 
 # ---------------------------------------------------------------------------
+# API calls
+# ---------------------------------------------------------------------------
+
+def create_message(client, **kwargs):
+    """Call the Messages API and count the call if it succeeds."""
+    global api_calls_ok
+    response = client.messages.create(**kwargs)
+    api_calls_ok += 1
+    return response
+
+
+def is_account_error(e):
+    """True for errors no retry will fix: a bad key, no permission, or no credit.
+
+    The SDK has no class for billing errors, so those are recognised by
+    status 402, the "billing_error" type, or the low-credit message.
+    """
+    if isinstance(e, (anthropic.AuthenticationError, anthropic.PermissionDeniedError)):
+        return True
+    if not isinstance(e, anthropic.APIStatusError):
+        return False
+    body = e.body if isinstance(e.body, dict) else {}
+    error = body.get("error") if isinstance(body.get("error"), dict) else {}
+    return (e.status_code == 402
+            or error.get("type") == "billing_error"
+            or "credit balance" in str(e).lower())
+
+
+# ---------------------------------------------------------------------------
 # Running the agent on one question
 # ---------------------------------------------------------------------------
 
@@ -98,7 +136,8 @@ def run_agent(client, tools, question):
 
     for _ in range(MAX_TURNS):
         # Thinking and effort are left at the model's defaults.
-        response = client.messages.create(
+        response = create_message(
+            client,
             model=AGENT_MODEL,
             max_tokens=16000,
             system=SYSTEM_PROMPT,
@@ -147,7 +186,8 @@ def ask_judge(client, case, result, rubric):
         f"Assistant's final response:\n{result['answer']}\n\n"
         f"Question: {rubric}"
     )
-    response = client.messages.create(
+    response = create_message(
+        client,
         model=JUDGE_MODEL,
         max_tokens=16000,
         system=JUDGE_INSTRUCTIONS,
@@ -195,27 +235,37 @@ def score(client, case, result):
 def print_table(records):
     """Print the pass rate per case, per category and in total.
 
-    A run passes when every one of its checks passes.
+    A run passes when every one of its checks passes. Runs that hit an API
+    error are not counted in the pass rate; they get their own column.
     """
     by_case = defaultdict(list)
     by_category = defaultdict(list)
     for record in records:
-        by_case[(record["case_id"], record["category"], record["question"])].append(record["passed"])
-        by_category[record["category"]].append(record["passed"])
+        by_case[(record["case_id"], record["category"], record["question"])].append(record["outcome"])
+        by_category[record["category"]].append(record["outcome"])
 
-    def rate(passes):
-        return f"{sum(passes)}/{len(passes)}  {sum(passes) / len(passes):>4.0%}"
+    def rate(outcomes):
+        scored = [outcome for outcome in outcomes if outcome != "error"]
+        passes = scored.count("pass")
+        if not scored:
+            return f"{'0/0':>5}     -"
+        return f"{passes}/{len(scored)}  {passes / len(scored):>4.0%}"
 
-    print(f"\n{'case':>4}  {'category':<11} {'pass':>9}  question")
-    for (case_id, category, question), passes in sorted(by_case.items()):
-        print(f"{case_id:>4}  {category:<11} {rate(passes):>9}  {question}")
+    def errors(outcomes):
+        return outcomes.count("error") or ""
 
-    print(f"\n{'category':<11} {'pass':>9}")
-    for category, passes in sorted(by_category.items()):
-        print(f"{category:<11} {rate(passes):>9}")
+    print(f"\n{'case':>4}  {'category':<11} {'pass':>9} {'errors':>6}  question")
+    for (case_id, category, question), outcomes in sorted(by_case.items()):
+        print(f"{case_id:>4}  {category:<11} {rate(outcomes):>9} {errors(outcomes):>6}  {question}")
 
-    everything = [record["passed"] for record in records]
-    print(f"\n{'TOTAL':<11} {rate(everything):>9}")
+    print(f"\n{'category':<11} {'pass':>9} {'errors':>6}")
+    for category, outcomes in sorted(by_category.items()):
+        print(f"{category:<11} {rate(outcomes):>9} {errors(outcomes):>6}")
+
+    everything = [record["outcome"] for record in records]
+    print(f"\n{'TOTAL':<11} {rate(everything):>9} {errors(everything):>6}")
+    if "error" in everything:
+        print(f"\n{everything.count('error')} run(s) hit an API error and are not in the pass rate.")
 
 
 # ---------------------------------------------------------------------------
@@ -324,15 +374,31 @@ def main():
                 checks = score(client, case, result)
                 error = None
             except anthropic.APIError as e:
-                # Record the failure and carry on with the other runs.
+                if api_calls_ok == 0 and is_account_error(e):
+                    # The very first call failed on the key, permissions or
+                    # billing: every other run would fail the same way.
+                    print("stopped")
+                    sys.exit(f"\nThe first API call failed, so no cases were run.\n"
+                             f"{type(e).__name__}: {e}\n"
+                             f"Check ANTHROPIC_API_KEY in .env, the key's access to "
+                             f"{AGENT_MODEL} and {JUDGE_MODEL}, and the account's credit balance.")
+                # An infrastructure problem, not an agent failure: record it
+                # as "error" and carry on with the other runs.
                 result = {"tool_calls": [], "answer": "", "stop_reason": None}
                 checks, error = [], f"{type(e).__name__}: {e}"
-            passed = error is None and all(check["passed"] for check in checks)
-            print("pass" if passed else f"FAIL {error or [c['name'] for c in checks if not c['passed']]}")
+            if error:
+                outcome = "error"
+                print(f"ERROR {error}")
+            elif all(check["passed"] for check in checks):
+                outcome = "pass"
+                print("pass")
+            else:
+                outcome = "fail"
+                print(f"FAIL {[c['name'] for c in checks if not c['passed']]}")
             records.append({
                 "case_id": case["id"], "set": case["set"], "category": case["category"],
                 "question": case["question"], "run": run, **result,
-                "checks": checks, "error": error, "passed": passed,
+                "checks": checks, "error": error, "outcome": outcome,
             })
 
     # Save everything, then print the summary.
