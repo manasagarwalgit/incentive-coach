@@ -4,28 +4,34 @@ An AI agent that tells a field sales manager which reps to call at month-end, an
 
 ## In 30 seconds
 
-**The problem.** Field sales managers run month-end pushes by WhatsApp and phone across up to 50 reps. Their messages are generic, so reps ignore them. Managers can't easily see who is close to an incentive step, who will cross anyway, or what a push is worth, so calls go to the wrong reps.
+**The problem.** Field sales managers run month-end pushes by WhatsApp and phone across up to 50 reps. Their messages are generic and easy to ignore. Managers can't easily see who is close to an incentive step, who will cross anyway, or what a push is worth, so calls go to the wrong reps.
 
 **What the agent does.**
 - **Who to call, and why:** it ranks the reps a call can still help, and shows the numbers behind each rank.
 - **A nudge for every rep:** each message has that rep's own gap, the payout it unlocks, and the daily pace needed.
 - **Drafts only:** the manager reviews and sends every message. The agent never sends anything.
 
-**Proof it works** (from [docs/EVALS.md](docs/EVALS.md)):
+**What's been tested** (from [docs/EVALS.md](docs/EVALS.md)):
 
 | Test | Result |
 |---|---|
 | Unit tests | 32/32 |
+| Agent evals, dev set, before fixes (re-scored with final checks) | 31/33 |
+| Agent evals, held-out set, before fixes (re-scored) | 6/9 |
 | Agent evals, dev set, after fixes (3 runs per case) | 33/33 |
 | Agent evals, held-out set, after fixes (3 runs per case) | 12/12 |
 | Judge canaries (bad answers the judge must fail) | 4/4 caught |
 | Human agreement with the judge | 10/10 |
 
+The evals caught two false passes in the first runs; see [docs/EVALS.md](docs/EVALS.md).
+
+These test that the agent follows its rules on synthetic data. Whether nudges lift sales needs a live experiment; see [docs/EXPERIMENT.md](docs/EXPERIMENT.md).
+
 All data is synthetic.
 
 ## Example
 
-A real question and answer from `evals/results/2026-10-25_183727.json` (case 1, run 1). The agent was `claude-sonnet-5-5` with the prompt in `agent/CLAUDE.md`. The answer is shortened; `[…]` marks cuts.
+A real question and answer from `evals/results/2026-10-25_183727.json` (case 1, run 1). The agent was `claude-sonnet-5-5` with the prompt in `agent/CLAUDE.md`. The answer is shortened: `[…]` marks cuts, and the table keeps 6 of its 11 columns.
 
 **Manager:** Who should I call today?
 
@@ -33,12 +39,12 @@ A real question and answer from `evals/results/2026-10-25_183727.json` (case 1, 
 
 > Today is day 24 of 30, so there are 6 days left. Fifteen reps are in reach. These are the first five to call, in order:
 >
-> | Rank | Rep | Sales so far | Next step | Gap | Pace needed per day | Current pace per day | Pace multiple needed | Margin if they cross | Incentive unlocked | Priority |
-> |---|---|---|---|---|---|---|---|---|---|---|
-> | 1 | Akash (R03) | ₹56,880 | ₹75,000 | ₹18,120 | ₹3,020 | ₹2,370 | 1.27x | ₹5,266 | ₹1,500 | 3.51 |
-> | 2 | Hema (R44) | ₹57,160 | ₹75,000 | ₹17,840 | ₹2,974 | ₹2,382 | 1.25x | ₹5,228 | ₹1,500 | 3.49 |
-> | 3 | Suresh (R32) | ₹57,690 | ₹75,000 | ₹17,310 | ₹2,885 | ₹2,404 | 1.2x | ₹5,017 | ₹1,500 | 3.34 |
-> | […] | | | | | | | | | | |
+> | Rank | Rep | Gap | Pace multiple needed | Incentive unlocked | Priority |
+> |---|---|---|---|---|---|
+> | 1 | Akash (R03) | ₹18,120 | 1.27x | ₹1,500 | 3.51 |
+> | 2 | Hema (R44) | ₹17,840 | 1.25x | ₹1,500 | 3.49 |
+> | 3 | Suresh (R32) | ₹17,310 | 1.2x | ₹1,500 | 3.34 |
+> | […] | | | | | |
 >
 > **How the ranking works:** priority is the margin if the rep crosses, divided by the incentive unlocked. A higher number means call first. The five reps above are all heading for the ₹75,000 step. That step unlocks only ₹1,500 each, so their margin per rupee of incentive is high.
 >

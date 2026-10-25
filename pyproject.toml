@@ -1,7 +1,7 @@
 [project]
 name = "incentive-coach"
 version = "0.1.0"
-description = "Add your description here"
+description = "An AI agent that tells a field sales manager which reps to call at month-end, and drafts an honest, number-backed nudge for every rep."
 readme = "README.md"
 authors = [
     { name = "Manas Agarwal", email = "manasagarwal3412@gmail.com" }
@@ -12,13 +12,6 @@ dependencies = [
     "mcp[cli]>=2.3.0",
     "python-dotenv>=1.2.4",
 ]
-
-[project.scripts]
-incentive-coach = "incentive_coach:main"
-
-[build-system]
-requires = ["uv_build>=0.12.23,<0.13.0"]
-build-backend = "uv_build"
 
 [dependency-groups]
 dev = [
