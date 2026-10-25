@@ -134,7 +134,7 @@ The same pattern fits any frontline team that is paid against targets and nudged
 You need [uv](https://docs.astral.sh/uv/) and Python 3.12 or later.
 
 ```bash
-git clone <this repo> incentive-coach
+git clone https://github.com/manasagarwalgit/incentive-coach.git incentive-coach
 cd incentive-coach
 uv sync                                   # install dependencies
 
