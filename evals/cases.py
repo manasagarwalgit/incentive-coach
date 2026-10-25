@@ -151,6 +151,10 @@ MULTIPLIER = r"(?:[x×](?!\w|\s*[₹\d])|times\b)"
 RANGE_RE = re.compile(rf"(?<![\d.,])({NUMBER})\s*(?:[x×]\s*)?(?:to|-|–|—|and)\s*({NUMBER})\s*{MULTIPLIER}",
                       re.IGNORECASE)
 SINGLE_RE = re.compile(rf"(?<![\d.,])({NUMBER})\s*{MULTIPLIER}", re.IGNORECASE)
+# Words just before a single multiplier that make it a bound, not a value:
+# "more than 5x" / "over 5x" / "above 5x", "under 2x" / "less than 2x" / "below 2x".
+BOUND_RE = re.compile(r"\b(?:(more than|over|above)|(under|less than|below))\s+"
+                      r"(?:about\s+|roughly\s+|around\s+)?$", re.IGNORECASE)
 
 # How far a stated multiplier may be from a tool's ratio (covers rounding,
 # e.g. "2.3x" for 2.27).
@@ -158,20 +162,26 @@ MULTIPLIER_TOLERANCE = 0.1
 
 
 def stated_multipliers(text):
-    """Every multiplier written in the text, as (value, sentence) pairs.
+    """Every multiplier written in the text, as (value, kind, sentence) triples.
 
-    A table row counts as a sentence. Sentences about orders are skipped:
-    "an order 4x her average day" is about a bulk order, not about pace.
+    kind is "exact" for a value or either end of a range, "above" for
+    "more than / over / above N×" and "below" for "under / less than /
+    below N×". A table row counts as a sentence. Sentences about orders are
+    skipped: "an order 4x her average day" is about a bulk order, not pace.
     """
     found = []
     for sentence in re.split(r"(?<=[.!?])\s+|\n", text):
         if re.search(r"\b(bulk|orders?)\b", sentence, re.IGNORECASE):
             continue
         for match in RANGE_RE.finditer(sentence):
-            found += [(float(match.group(1)), sentence), (float(match.group(2)), sentence)]
+            found += [(float(match.group(1)), "exact", sentence),
+                      (float(match.group(2)), "exact", sentence)]
         # Drop ranges first so their upper end isn't counted twice.
-        for match in SINGLE_RE.finditer(RANGE_RE.sub(" ", sentence)):
-            found.append((float(match.group(1)), sentence))
+        rest = RANGE_RE.sub(" ", sentence)
+        for match in SINGLE_RE.finditer(rest):
+            bound = BOUND_RE.search(rest[:match.start()])
+            kind = "exact" if not bound else ("above" if bound.group(1) else "below")
+            found.append((float(match.group(1)), kind, sentence))
     return found
 
 
@@ -224,30 +234,50 @@ def names_rep(sentence, rep_id, rep):
     return re.search(pattern, sentence, re.IGNORECASE) is not None
 
 
-def pace_multipliers_match_tools(result):
-    """Fail if a multiplier in the answer or a nudge template isn't a tool's pace ratio.
+def multiplier_ok(value, kind, reps):
+    """Is one stated multiplier supported by these reps' tool ratios?
 
-    The reps concerned: if the sentence names reps the tools returned, the
-    multiplier must match one of THEIR ratios; if it names none ("every rep
-    needs 2.3 to 7.9 times"), it must match some rep the tools returned.
-    The PACE_MULTIPLIER rule itself (in reach = at most 1.5x current pace)
-    is always allowed, since the tool descriptions state it.
+    exact: within MULTIPLIER_TOLERANCE of at least one rep's ratio.
+    above: EVERY rep (that has a ratio) is above the value; below: every
+           rep is below it. No tolerance for bounds: "more than 5x" is
+           wrong if any rep concerned is at 4.95.
+    """
+    with_ratios = [rep["ratios"] for rep in reps if rep["ratios"]]
+    if kind == "exact":
+        return any(abs(value - r) <= MULTIPLIER_TOLERANCE + 1e-9 for ratios in with_ratios for r in ratios)
+    if not with_ratios:
+        return False
+    if kind == "above":
+        return all(min(ratios) > value for ratios in with_ratios)
+    return all(max(ratios) < value for ratios in with_ratios)
+
+
+def pace_multipliers_match_tools(result):
+    """Fail if a multiplier in the answer or a nudge template isn't backed by a tool's pace ratio.
+
+    The reps concerned: if the sentence names reps the tools returned, only
+    THEIR ratios count; if it names none ("every rep needs 2.3 to 7.9
+    times"), every rep the tools returned counts. Exact values and range
+    ends must be within 0.1 of a ratio; bounds ("more than 5x", "under 2x")
+    must hold for every rep concerned (see multiplier_ok). The
+    PACE_MULTIPLIER rule itself (in reach = at most 1.5x current pace) is
+    always allowed, since the tool descriptions state it.
     """
     templates = [call["input"].get("template", "") for call in result["tool_calls"]
                  if call["name"] == "fill_nudges"]
-    stated = [pair for text in [result["answer"], *templates] for pair in stated_multipliers(text)]
+    stated = [triple for text in [result["answer"], *templates] for triple in stated_multipliers(text)]
     if not stated:
         return True, "no multipliers stated"
     reps = pace_ratios_from_tools(result)
-    every_ratio = {r for rep in reps.values() for r in rep["ratios"]}
     wrong = set()
-    for value, sentence in stated:
+    for value, kind, sentence in stated:
+        if value == PACE_MULTIPLIER:
+            continue
         named = [rep for rep_id, rep in reps.items() if names_rep(sentence, rep_id, rep)]
-        allowed = {r for rep in named for r in rep["ratios"]} if named else every_ratio
-        if not any(abs(value - r) <= MULTIPLIER_TOLERANCE + 1e-9 for r in allowed | {PACE_MULTIPLIER}):
-            wrong.add(value)
-    values = sorted({value for value, _ in stated})
-    return not wrong, f"stated {values}; not a tool ratio (±0.1): {sorted(wrong) or 'none'}"
+        if not multiplier_ok(value, kind, named or list(reps.values())):
+            wrong.add(value if kind == "exact" else f"{kind} {value}")
+    stated_text = sorted({value if kind == "exact" else f"{kind} {value}" for value, kind, _ in stated}, key=str)
+    return not wrong, f"stated {stated_text}; not backed by a tool ratio: {sorted(wrong, key=str) or 'none'}"
 
 
 PACE_MULTIPLIERS_CHECK = {"name": "pace multipliers from tools", "method": "code",
