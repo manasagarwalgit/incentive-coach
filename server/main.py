@@ -119,6 +119,39 @@ def rep_numbers(rep, scheme):
     return numbers, now, d
 
 
+def rep_flags(db, rep, scheme, numbers, d):
+    """Notes for the manager about numbers that look odd. Not for the rep.
+
+    - late_starter: the rep started after day 1, so their pace is averaged
+      over fewer days.
+    - bulk_order: one unusually large order (3x or more their average day).
+      The last bulk flag carries a note with the segment the rep would be
+      in without any bulk orders.
+    """
+    flags = []
+    if rep["start_day"] > 1:
+        days_worked = scheme["today"] - rep["start_day"] + 1
+        flags.append({
+            "type": "late_starter",
+            "start_day": rep["start_day"],
+            "note": f"Started on day {rep['start_day']}, so pace is averaged over "
+                    f"{days_worked} days, not {scheme['today']}.",
+        })
+    bulk = find_bulk_orders(db, rep["rep_id"], d["pace"])
+    for day, value in bulk:
+        flags.append({"type": "bulk_order", "day": day, "value": value})
+    if bulk:
+        # Show what the segment would be without the bulk orders.
+        without = rep["sales"] - sum(value for _, value in bulk)
+        group_without, _ = find_segment(without, rep["start_day"], scheme["today"],
+                                   scheme["days_left"], scheme["thresholds"])
+        flags[-1]["note"] = (
+            f"Without bulk orders, sales would be {rupees(without)} and the segment "
+            f"would be {group_without} (currently {numbers['segment']})."
+        )
+    return flags
+
+
 def load_everything():
     """Read the scheme and all reps in one go."""
     db = connect()
@@ -164,7 +197,10 @@ def get_team_status(segment: str | None = None) -> dict[str, Any]:
             Leave empty to get every rep.
 
     Returns, for every rep: segment, sales so far, next step, gap to it,
-    current pace per day and pace needed per day (rupees). In-reach reps are
+    current pace per day, pace needed per day (rupees) and flags. Flags are
+    the same manager notes get_rep_detail returns (late_starter, bulk_order,
+    each with a short note), so you don't need get_rep_detail just to find
+    which reps are flagged; an empty list means no flags. In-reach reps are
     listed in call order, with margin_if_cross, incentive_unlocked and
     call_priority = margin_if_cross / incentive_unlocked (higher = call
     first). Only in-reach reps are ranked: on-track reps should cross anyway
@@ -178,10 +214,11 @@ def get_team_status(segment: str | None = None) -> dict[str, Any]:
     db, scheme, reps = load_everything()
     groups = {name: [] for name in SEGMENTS}
     for rep in reps.values():
-        numbers, _, _ = rep_numbers(rep, scheme)
+        numbers, _, d = rep_numbers(rep, scheme)
         row = {key: numbers[key] for key in
                ["rep_id", "name", "segment", "sales", "next_step", "gap",
                 "pace_per_day", "need_per_day"]}
+        row["flags"] = rep_flags(db, rep, scheme, numbers, d)
         if numbers["segment"] == "in_reach":
             row["margin_if_cross"] = numbers["margin_if_cross"]
             row["incentive_unlocked"] = numbers["incentive_unlocked"]
@@ -218,7 +255,8 @@ def get_rep_detail(rep_id: str) -> dict[str, Any]:
     (with breakdown), next step, gap, pace now and pace needed, the extra
     payout unlocked by crossing, the segment, and flags.
 
-    Flags are notes for the manager, not for the rep:
+    Flags are notes for the manager, not for the rep (get_team_status
+    returns the same flags for every rep):
     - late_starter: the rep started after day 1, so their pace is averaged
       over fewer days.
     - bulk_order: one unusually large order (3x or more their average day).
@@ -237,27 +275,6 @@ def get_rep_detail(rep_id: str) -> dict[str, Any]:
     numbers, now, d = rep_numbers(rep, scheme)
     days_worked = scheme["today"] - rep["start_day"] + 1
 
-    flags = []
-    if rep["start_day"] > 1:
-        flags.append({
-            "type": "late_starter",
-            "start_day": rep["start_day"],
-            "note": f"Started on day {rep['start_day']}, so pace is averaged over "
-                    f"{days_worked} days, not {scheme['today']}.",
-        })
-    bulk = find_bulk_orders(db, rep_id, d["pace"])
-    for day, value in bulk:
-        flags.append({"type": "bulk_order", "day": day, "value": value})
-    if bulk:
-        # Show what the segment would be without the bulk orders.
-        without = rep["sales"] - sum(value for _, value in bulk)
-        group_without, _ = find_segment(without, rep["start_day"], scheme["today"],
-                                   scheme["days_left"], scheme["thresholds"])
-        flags[-1]["note"] = (
-            f"Without bulk orders, sales would be {rupees(without)} and the segment "
-            f"would be {group_without} (currently {numbers['segment']})."
-        )
-
     return {
         **numbers,
         "start_day": rep["start_day"],
@@ -267,7 +284,7 @@ def get_rep_detail(rep_id: str) -> dict[str, Any]:
         "focus_pieces": rep["focus_pieces"],
         "kicker_per_piece": scheme["kicker_per_piece"],
         "current_payout": now,
-        "flags": flags,
+        "flags": rep_flags(db, rep, scheme, numbers, d),
     }
 
 

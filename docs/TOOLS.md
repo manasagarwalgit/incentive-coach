@@ -49,14 +49,19 @@
     "in_reach": [
       {"rep_id": "R14", "name": "Isha", "segment": "in_reach", "sales": 76640,
        "next_step": 100000, "gap": 23360, "pace_per_day": 3193, "need_per_day": 3894,
-       "margin_if_cross": 6650, "incentive_unlocked": 2500, "call_priority": 2.66, "call_rank": 7}
+       "flags": [],
+       "margin_if_cross": 6650, "incentive_unlocked": 2500, "call_priority": 2.66, "call_rank": 7},
+      {"rep_id": "R37", "name": "Vidya", "segment": "in_reach", "...": "...",
+       "flags": [{"type": "late_starter", "start_day": 10,
+                  "note": "Started on day 10, so pace is averaged over 15 days, not 24."}],
+       "call_rank": 11}
     ],
     "on_track": [ ... ], "top_step": [ ... ], "far_behind": [ ... ]
   }
 }
 ```
 
-Top-step reps have `next_step`, `gap` and `need_per_day` set to `null`. In-reach reps are sorted by `call_priority`, highest first.
+Top-step reps have `next_step`, `gap` and `need_per_day` set to `null`. In-reach reps are sorted by `call_priority`, highest first. Every rep has `flags`, the same list `get_rep_detail` returns (see the flag table there); an empty list means no flags.
 
 **Errors:** an unknown segment returns the error with `allowed_segments`.
 
@@ -64,6 +69,7 @@ Top-step reps have `next_step`, `gap` and `need_per_day` set to `null`. In-reach
 - **Grouped by segment.** The manager acts on one segment at a time (one call list, one message per segment), so the grouping matches how the output gets used.
 - **Only in-reach reps are ranked.** On-track reps should cross anyway, and far-behind reps need more than 1.5× their pace. A call is worth most to in-reach reps (PRD).
 - **Formula inputs are shown next to the score.** The PRD's "unexplainable ranking" risk: the manager can see why R03 ranks above R14.
+- **Flags are included for every rep.** Without them, the agent had to call `get_rep_detail` on each in-reach rep just to find out who was flagged (16 tool calls for one call list). Now it's 1. Both tools build flags with the same helper, so they can't disagree.
 
 ## 2. `get_rep_detail`
 
@@ -75,7 +81,7 @@ Top-step reps have `next_step`, `gap` and `need_per_day` set to `null`. In-reach
 |---|---|---|---|
 | `rep_id` | string | yes | For example `R14`. `r14` and `R5` are accepted too |
 
-**Output:** every field from `get_team_status`, plus `incentive_unlocked`, `margin_if_cross`, `start_day`, `days_worked`, `days_left`, `projected_month_end`, `focus_pieces`, `kicker_per_piece`, `current_payout` (same breakdown as `calculate_payout`) and `flags`.
+**Output:** every field from `get_team_status` (including `flags`), plus `incentive_unlocked`, `margin_if_cross`, `start_day`, `days_worked`, `days_left`, `projected_month_end`, `focus_pieces`, `kicker_per_piece` and `current_payout` (same breakdown as `calculate_payout`).
 
 ```json
 "flags": [
