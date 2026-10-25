@@ -1,6 +1,6 @@
 # The Incentive Coach MCP server.
 #
-# It gives the agent four tools. Each tool reads data/incentive.db, does all
+# It gives the agent five tools. Each tool reads data/incentive.db, does all
 # the arithmetic in code (via server/logic.py) and returns a dict, which the
 # agent receives as structured JSON. The tools never write prose for reps;
 # the agent writes messages, and every rupee figure it quotes must come from
@@ -22,6 +22,7 @@ from logic import (
     load_reps,
     load_scheme,
     payout,
+    payout_totals,
 )
 # Renamed on import so it isn't confused with the tools' `segment` argument.
 from logic import segment as find_segment
@@ -408,6 +409,41 @@ def fill_nudges(segment: str, template: str) -> dict[str, Any]:
                          "message": template.format(**values)})
 
     return {"segment": segment, "count": len(messages), "messages": messages}
+
+
+# ---------------------------------------------------------------------------
+# Tool 5: payout totals across the team
+# ---------------------------------------------------------------------------
+
+@mcp.tool()
+def get_payout_totals() -> dict[str, Any]:
+    """Total payout for the month, now and if every in-reach rep crosses.
+
+    Use this for ANY total across reps: "what is our total payout?", "what
+    would it cost if every in-reach rep crosses?", "how much are we paying
+    the top-step reps?". Never add up per-rep figures yourself.
+
+    "If every in-reach rep crosses" means each in-reach rep sells exactly up
+    to their next step, with no extra focus pieces. Reps in the other three
+    segments stay where they are, so their two figures are the same.
+
+    Returns totals for the whole team and for each segment, each with:
+    - rep_count
+    - payout_now: what those reps earn on today's sales
+    - payout_if_in_reach_cross: what they earn once every in-reach rep crosses
+    - extra_cost: payout_if_in_reach_cross - payout_now (non-zero only for
+      in_reach, and for the team as a whole)
+    """
+    _, scheme, reps = load_everything()
+    totals = payout_totals(reps.values(), scheme)
+    return {
+        "today": scheme["today"],
+        "days_left": scheme["days_left"],
+        "assumption": "Each in-reach rep sells exactly up to their next step, with no extra "
+                      "focus pieces. Reps in other segments stay where they are.",
+        "team": totals["team"],
+        "by_segment": totals["by_segment"],
+    }
 
 
 # Start the server.

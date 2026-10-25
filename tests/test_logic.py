@@ -17,7 +17,7 @@ import pytest
 
 # Let Python find server/logic.py (same trick as data/check.py).
 sys.path.insert(0, str(Path(__file__).parent.parent / "server"))
-from logic import connect, load_reps, load_scheme, payout, segment  # noqa: E402
+from logic import connect, load_reps, load_scheme, payout, payout_totals, segment  # noqa: E402
 
 
 # ---------------------------------------------------------------------------
@@ -134,3 +134,45 @@ def test_boundary_1_50x_exactly_is_in_reach():
 
 def test_boundary_1_51x_is_far_behind():
     assert boundary_case(25100) == "far_behind"
+
+
+# ---------------------------------------------------------------------------
+# Payout totals across reps
+# ---------------------------------------------------------------------------
+# Five made-up reps, all starting on day 1, with the real calendar
+# (today = 24, 6 days left). Pace = sales / 24, projected = sales x 30/24.
+#
+#   rep  sales     pieces  segment     payout now          if in-reach cross
+#   A    1,10,000  20      top_step    5,000 + 1,500 = 6,500   6,500
+#   B      96,000  30      on_track    2,500 + 2,250 = 4,750   4,750
+#          (pace 4,000, projected 1,20,000 >= 1,00,000)
+#   C      57,600  20      in_reach    1,000 + 1,500 = 2,500   at 75,000: 2,500 + 1,500 = 4,000
+#          (pace 2,400, projected 72,000; needs 2,900/day <= 1.5 x 2,400)
+#   D      38,400  10      in_reach    0 (below step 1)        at 50,000: 1,000 + 750 = 1,750
+#          (pace 1,600, projected 48,000; needs 1,934/day <= 1.5 x 1,600)
+#   E      24,000   8      far_behind  0                       0
+#          (pace 1,000; needs 4,334/day > 1.5 x 1,000)
+#
+# Team now = 6,500 + 4,750 + 2,500 + 0 + 0 = 13,750
+# Team if crossed = 6,500 + 4,750 + 4,000 + 1,750 + 0 = 17,000, extra 3,250.
+
+def test_payout_totals_hand_worked(scheme):
+    assert (scheme["today"], scheme["days_left"]) == (24, 6)
+    reps = [
+        {"sales": 110000, "focus_pieces": 20, "start_day": 1},
+        {"sales": 96000, "focus_pieces": 30, "start_day": 1},
+        {"sales": 57600, "focus_pieces": 20, "start_day": 1},
+        {"sales": 38400, "focus_pieces": 10, "start_day": 1},
+        {"sales": 24000, "focus_pieces": 8, "start_day": 1},
+    ]
+    totals = payout_totals(reps, scheme)
+
+    assert totals["team"] == {"rep_count": 5, "payout_now": 13750,
+                              "payout_if_in_reach_cross": 17000, "extra_cost": 3250}
+    assert totals["by_segment"]["in_reach"] == {"rep_count": 2, "payout_now": 2500,
+                                                "payout_if_in_reach_cross": 5750,
+                                                "extra_cost": 3250}
+    # Only in-reach reps change.
+    for group, now in [("top_step", 6500), ("on_track", 4750), ("far_behind", 0)]:
+        assert totals["by_segment"][group]["payout_now"] == now
+        assert totals["by_segment"][group]["extra_cost"] == 0

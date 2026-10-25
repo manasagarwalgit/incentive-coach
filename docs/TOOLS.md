@@ -1,6 +1,6 @@
 # MCP tools
 
-*The Incentive Coach server (`server/main.py`) gives the agent four tools. Every tool reads `data/incentive.db` read-only and returns a dict, which the agent gets as structured JSON. None of them return prose for reps.*
+*The Incentive Coach server (`server/main.py`) gives the agent five tools. Every tool reads `data/incentive.db` read-only and returns a dict, which the agent gets as structured JSON. None of them return prose for reps.*
 
 ## Design principles
 
@@ -185,3 +185,39 @@ The whole template is checked before any message is filled, so the result is eit
 - **The model writes the words; code writes the numbers.** That's how the PRD's quality bar ("every ₹ figure matches tool output, zero mismatches") is met by construction, not by checking afterwards.
 - **One template per segment.** That matches the PRD's adoption mitigation ("drafts grouped by segment"). The manager reviews one message, not 15.
 - **A fixed placeholder list.** An unknown name is an error, not a blank. A silently empty `{bonus}` would send reps a broken message.
+
+## 5. `get_payout_totals`
+
+**When to use:** for any total across reps, such as "what is our total payout?" or "what would it cost if every in-reach rep crosses?". The agent should never add up per-rep figures itself.
+
+**Input:** none.
+
+**Output**
+
+```json
+{
+  "today": 24, "days_left": 6,
+  "assumption": "Each in-reach rep sells exactly up to their next step, with no extra focus pieces. Reps in other segments stay where they are.",
+  "team":       {"rep_count": 50, "payout_now": 187675, "payout_if_in_reach_cross": 221075, "extra_cost": 33400},
+  "by_segment": {
+    "top_step":   {"rep_count": 10, "payout_now": 93725, "payout_if_in_reach_cross": 93725, "extra_cost": 0},
+    "on_track":   {"rep_count": 15, "payout_now": 48550, "payout_if_in_reach_cross": 48550, "extra_cost": 0},
+    "in_reach":   {"rep_count": 15, "payout_now": 45400, "payout_if_in_reach_cross": 78800, "extra_cost": 33400},
+    "far_behind": {"rep_count": 10, "payout_now": 0,     "payout_if_in_reach_cross": 0,     "extra_cost": 0}
+  }
+}
+```
+
+| Field | Meaning |
+|---|---|
+| `payout_now` | Sum of `calculate_payout`'s `now.total` for those reps |
+| `payout_if_in_reach_cross` | The same sum after every in-reach rep sells exactly their `gap`. Other reps are unchanged |
+| `extra_cost` | `payout_if_in_reach_cross − payout_now`. Non-zero only for `in_reach` and `team` |
+
+**Errors:** none; the tool takes no input.
+
+**Why this design**
+- **Totals come from code, like every other number.** Before this tool, "what's our total payout if every in-reach rep crosses?" took 16 tool calls, and the agent then either added 15 figures itself (breaking the "never calculate" rule) or declined and asked the manager to use a spreadsheet.
+- **Team and segment totals together.** "Total payout" can mean the in-reach reps only, the extra cost, or the whole team. One call returns all three, so the agent can answer whichever the manager meant, or show all of them.
+- **The crossing assumption is stated in the output.** Selling exactly the gap with no extra focus pieces is the cheapest way to cross, so this is the minimum extra cost. The agent can repeat the assumption instead of inventing one.
+- **Built from the same per-rep `payout()` as `calculate_payout`**, in `server/logic.py`, so a total always equals the sum of the per-rep figures.

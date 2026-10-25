@@ -9,7 +9,7 @@
 # What one run of one case does:
 #   1. Send the manager's question to the agent model, with agent/CLAUDE.md
 #      (or the file given by --system-prompt) as the system prompt and the
-#      four MCP tools from server/main.py.
+#      five MCP tools from server/main.py.
 #   2. Whenever the agent asks for a tool, call that Python function
 #      directly (no MCP server process needed) and send back the result.
 #   3. When the agent stops asking for tools, take its final answer.
@@ -43,8 +43,8 @@ ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT / "server"))   # so main.py can `from logic import ...`
 sys.path.insert(0, str(ROOT / "evals"))
 
-import main as server  # noqa: E402  (server/main.py: the four tool functions)
-from cases import CASES, cases_for  # noqa: E402
+import main as server  # noqa: E402  (server/main.py: the five tool functions)
+from cases import CASES, DEV_IDS, cases_for  # noqa: E402
 
 AGENT_MODEL = "claude-sonnet-5-5"
 JUDGE_MODEL = "claude-opus-5-5"
@@ -57,11 +57,11 @@ MAX_TURNS = 10
 # How many API calls have succeeded so far (see create_message).
 api_calls_ok = 0
 
-# The four tools, by name, as plain Python functions.
+# The five tools, by name, as plain Python functions.
 TOOL_FUNCTIONS = {
     fn.__name__: fn
     for fn in [server.get_team_status, server.get_rep_detail,
-               server.calculate_payout, server.fill_nudges]
+               server.calculate_payout, server.fill_nudges, server.get_payout_totals]
 }
 
 
@@ -171,14 +171,15 @@ def run_agent(client, tools, system_prompt, question):
 # ---------------------------------------------------------------------------
 
 JUDGE_INSTRUCTIONS = """You grade one response from a sales-incentive assistant.
-Answer the question about the response with only "yes" or "no".
+Give a short reason (one or two sentences), then answer the question about the response with "yes" or "no".
 Judge only what the response actually says. The drafted messages are part of the response."""
 
 
 def ask_judge(client, case, result, rubric):
     """Ask the judge model a yes/no question about the agent's answer.
 
-    Returns (passed, detail). Every rubric is worded so that "yes" = pass.
+    Returns (passed, detail), where detail is "judge said <verdict>: <reason>".
+    Every rubric is worded so that "yes" = pass.
     The judge sees the question, the tool calls the agent made (so it can
     read the templates sent to fill_nudges) and the final answer.
     """
@@ -194,13 +195,18 @@ def ask_judge(client, case, result, rubric):
         max_tokens=16000,
         system=JUDGE_INSTRUCTIONS,
         messages=[{"role": "user", "content": prompt}],
-        # Structured output: the reply is JSON with "answer" set to exactly "yes" or "no".
+        # Structured output: the reply is JSON with a "reason" and "answer" set to
+        # exactly "yes" or "no". The reason comes first, so the judge writes it
+        # before committing to a verdict.
         output_config={"format": {
             "type": "json_schema",
             "schema": {
                 "type": "object",
-                "properties": {"answer": {"type": "string", "enum": ["yes", "no"]}},
-                "required": ["answer"],
+                "properties": {
+                    "reason": {"type": "string"},
+                    "answer": {"type": "string", "enum": ["yes", "no"]},
+                },
+                "required": ["reason", "answer"],
                 "additionalProperties": False,
             },
         }},
@@ -208,8 +214,9 @@ def ask_judge(client, case, result, rubric):
     if response.stop_reason == "refusal":
         return False, "judge refused"
     text = next(block.text for block in response.content if block.type == "text")
-    verdict = json.loads(text)["answer"]
-    return verdict == "yes", f"judge said {verdict}"
+    reply = json.loads(text)
+    verdict = reply["answer"]
+    return verdict == "yes", f"judge said {verdict}: {reply['reason']}"
 
 
 # ---------------------------------------------------------------------------
@@ -280,10 +287,10 @@ def dry_run(cases, tools, prompt_path, system_prompt):
 
     # 1. The cases are well-formed.
     ids = [case["id"] for case in CASES]
-    if ids != list(range(1, 14)):
-        problems.append(f"case ids should be 1-13, got {ids}")
+    if ids != list(range(1, 16)):
+        problems.append(f"case ids should be 1-15, got {ids}")
     for case in CASES:
-        expected_set = "dev" if case["id"] <= 10 else "held_out"
+        expected_set = "dev" if case["id"] in DEV_IDS else "held_out"
         if case["set"] != expected_set:
             problems.append(f"case {case['id']} is in '{case['set']}', expected '{expected_set}'")
         if not case["checks"]:
@@ -304,6 +311,7 @@ def dry_run(cases, tools, prompt_path, system_prompt):
         "get_rep_detail": {"rep_id": "R14"},
         "calculate_payout": {"rep_id": "R14", "extra_sales": 10000},
         "fill_nudges": {"segment": "far_behind", "template": "Hi {name}, you're {gap} from {next_step}."},
+        "get_payout_totals": {},
     }
     print("Tools (definitions from the MCP server, called directly in Python):")
     for name, tool_input in samples.items():

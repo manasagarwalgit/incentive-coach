@@ -150,3 +150,35 @@ def payout(sales, focus_pieces, scheme):
         "focus_kicker": focus_kicker,
         "total": step_payout + focus_kicker,
     }
+
+
+def payout_totals(reps, scheme):
+    """Add up payouts across reps, now and if every in-reach rep crosses.
+
+    "Crossing" means an in-reach rep sells exactly up to their next step,
+    with no extra focus pieces. Reps in the other segments stay as they are,
+    so for them the "if crossed" figure equals the "now" figure.
+
+    Returns {"by_segment": {segment: totals}, "team": totals}, where each
+    totals dict has rep_count, payout_now, payout_if_in_reach_cross and
+    extra_cost (= payout_if_in_reach_cross - payout_now).
+    """
+    def empty():
+        return {"rep_count": 0, "payout_now": 0, "payout_if_in_reach_cross": 0, "extra_cost": 0}
+
+    by_segment = {name: empty() for name in SEGMENTS}
+    team = empty()
+    for rep in reps:
+        group, details = segment(rep["sales"], rep["start_day"], scheme["today"],
+                                 scheme["days_left"], scheme["thresholds"])
+        now = payout(rep["sales"], rep["focus_pieces"], scheme)["total"]
+        if group == "in_reach":
+            after = payout(details["next_step"], rep["focus_pieces"], scheme)["total"]
+        else:
+            after = now
+        for totals in (by_segment[group], team):
+            totals["rep_count"] += 1
+            totals["payout_now"] += now
+            totals["payout_if_in_reach_cross"] += after
+            totals["extra_cost"] += after - now
+    return {"by_segment": by_segment, "team": team}
