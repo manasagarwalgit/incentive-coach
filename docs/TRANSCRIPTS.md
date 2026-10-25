@@ -2,6 +2,8 @@
 
 Agent: Claude Code (Opus) in a separate workspace with only the incentive-coach MCP tools and the rules in `agent/CLAUDE.md`. Data: synthetic, day 24 of 30.
 
+*Model note: these Day 3 transcripts were exploration on Opus in Claude Code. The shipped and evaluated model is Sonnet (`claude-sonnet-5-5`); see `docs/EVALS.md`.*
+
 ## Question 1 — "It's day 24. Which of my reps should I call today, and why?"
 
 ### Run 1 (before fix): 16 tool calls

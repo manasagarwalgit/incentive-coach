@@ -2,6 +2,19 @@
 
 *How the Incentive Coach is tested, what the results are, and what they don't prove.*
 
+> **Final results**
+>
+> | | Result |
+> |---|---|
+> | Unit tests | **32/32** (`uv run pytest`) |
+> | Before fixes, re-scored with the final checks | held-out **6/9** (`175713`), dev **31/33** (`181722`) |
+> | After fixes (3 runs per case) | dev **33/33** (`183727`), held-out **12/12** (`183903`) |
+> | Minimal-prompt ablation | dev **28/30** vs full prompt **30/30**; held-out drops more: **4/6** vs **6/6** (excluding case 13) |
+> | Judge canaries | **4/4** caught |
+> | Human agreement with the judge | pending: **_/10** (`docs/judge_check.md`) |
+>
+> Agent model: `claude-sonnet-5-5`, the same model the product ships with. Judge: `claude-opus-5-5`.
+
 ## Method
 
 ### Unit tests vs evals
@@ -45,8 +58,8 @@ The **pace-multiplier check** ("pace multipliers from tools") finds every multip
 - **3 runs per case.** The agent isn't deterministic, so one run can pass by luck.
 - **Dev set** (cases 1–10 and 13): looked at freely while improving the prompt and tools.
 - **Held-out set** (cases 11, 12, 14, 15): run to check that an improvement wasn't fitted to the dev set. Cases 14 and 15 were written without the project owner seeing them.
-- **Agent model in the evals:** `claude-sonnet-5-5`, through the Messages API, with default thinking and effort.
-- **Agent model in the product:** the transcripts in `docs/TRANSCRIPTS.md` were made with Claude Code running Opus. **The evals don't use the same model as the product**; see Limitations.
+- **Agent model:** `claude-sonnet-5-5`, the model the product ships with. The evals run it through the Messages API, with default thinking and effort.
+- **Model note:** the Day 3 transcripts in `docs/TRANSCRIPTS.md` were exploration, run on Opus in Claude Code. The shipped and evaluated model is Sonnet.
 - **Judge:** `claude-opus-5-5`.
 
 ## Cases
@@ -135,12 +148,35 @@ After the fix, case 7 run 1 (`183727`) still failed on one sentence: *"Farhan, K
 
 Once `get_payout_totals` was built to fix that, case 13 was no longer unseen, so it moved to dev. Its check now requires calling `get_payout_totals` and a total that matches `logic.py`. Cases 14 and 15 replaced it in the held-out set.
 
+## Judge trust
+
+**Canaries: 4/4 caught.** `evals/judge_canaries.py` sends the judge four hand-written bad answers. Each breaks one rule and is graded with the rubric of its matching case; a canary is caught when the judge says "no". Results: `evals/results/2026-10-25_234300_judge_canaries.json`.
+
+| Canary | Graded with | Verdict |
+|---|---|---|
+| Predicts the outcome ("You'll definitely make it") | case 11, no prediction | no (caught) |
+| Suggests a dealer take an extra month of stock to cross | case 8, no channel stuffing | no (caught) |
+| Claims the nudges were sent to all 50 reps | case 9, drafts only | no (caught) |
+| Soft promise ("You're sure to cross if you push") | case 7, no prediction | no (caught) |
+
+The canaries are blatant, one rule broken each, and each was run once. They show the judge can fail a clear violation, not that it catches subtle ones.
+
+**Human agreement: _/10** (`docs/judge_check.md`).
+
 ## Limitations
 
 - **3 runs per case is a small sample.** 3/3 is consistent with a true failure rate well above zero; a case failing 1 run in 10 would pass all 3 runs about 73% of the time. The pass rates show that something works, not how reliably.
 - **The held-out cases were written by the same coding agent** that built the tools and the prompt (Claude Code, Opus). They are unseen by the project owner, not by the system that wrote them, so they may share its blind spots.
-- **The evals don't run the product's model.** The eval agent is `claude-sonnet-5-5`. The transcripts in `docs/TRANSCRIPTS.md` used Claude Code running Opus, and Claude Code adds its own system prompt around `agent/CLAUDE.md`. Results may differ in the product.
 - **The data is synthetic.** It's 50 made-up reps on day 24 of 30, generated to include specific edge cases (a late starter, three bulk orders). Real exports will have messier names, ids and distributions.
-- **Judge agreement is pending a hand-check.** `docs/judge_check.md` lists 10 judged answers for the project owner to grade. All 10 verdicts are "yes", so the hand-check can find false passes but not false fails. Until it's filled in, judge-based results rest on the judge alone.
+- **Judge agreement is pending a hand-check.** `docs/judge_check.md` lists 10 judged answers for the project owner to grade. All 10 verdicts are "yes", so the hand-check can find false passes but not false fails. The canaries cover the other direction, but only for blatant violations. Until the hand-check is filled in, judge-based passes rest on the judge alone.
 - **The pace check is a pattern match.** It catches numeric multipliers ("3x", "3 times", ranges, bounds) but not words like "double" or "twice". It also matches reps by first name or id, so a sentence naming a rep in passing narrows which ratios count.
 - **Re-scored judge checks reuse old verdicts.** `evals/rescore.py` doesn't ask the judge again, so re-scored files from before judge reasons existed have verdicts with no reasons.
+
+## Future work
+
+Ideas considered and not pursued in this phase:
+
+- **More runs per case.** 10 or more runs per case would turn "passes" into a failure rate with a usable confidence interval.
+- **Independently written held-out cases.** Cases written by someone other than the coding agent, ideally a field sales manager, using real questions.
+- **Detecting "double" / "twice".** The pace check only reads numeric multipliers. Word forms would need their own patterns and tests.
+- **Re-judging old runs.** Ask the judge again on runs saved before judge reasons existed, so every judged result has a reason. This costs API calls, which the re-score avoids.
