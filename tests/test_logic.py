@@ -137,6 +137,27 @@ def test_boundary_1_51x_is_far_behind():
 
 
 # ---------------------------------------------------------------------------
+# Pace multiple: pace needed / current pace
+# ---------------------------------------------------------------------------
+
+def test_pace_multiple_isha_r14(scheme, reps):
+    # Isha: ₹76,640 over 24 days -> pace ₹3,193.33 a day.
+    # Gap to ₹1,00,000 is ₹23,360 over 6 days -> needs ₹3,893.33 a day.
+    # 3,893.33 / 3,193.33 = 1.2192... -> 1.22 to 2 decimals.
+    isha = reps["R14"]
+    _, details = segment(isha["sales"], isha["start_day"], scheme["today"],
+                         scheme["days_left"], scheme["thresholds"])
+    assert round(details["pace_multiple"], 2) == 1.22
+
+
+def test_pace_multiple_matches_boundary_inputs():
+    # The 1.49x boundary inputs above: need ₹1,490 a day, pace ₹1,000 a day.
+    _, details = segment(sales_so_far=10000, start_day=1, today=10,
+                         days_left=10, thresholds=[24900])
+    assert details["pace_multiple"] == pytest.approx(1.49)
+
+
+# ---------------------------------------------------------------------------
 # Payout totals across reps
 # ---------------------------------------------------------------------------
 # Five made-up reps, all starting on day 1, with the real calendar

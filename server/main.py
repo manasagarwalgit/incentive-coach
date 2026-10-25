@@ -33,12 +33,12 @@ mcp = MCPServer("incentive-coach")
 # The only words allowed inside {curly brackets} in a nudge template.
 ALLOWED_PLACEHOLDERS = [
     "name", "sales", "next_step", "gap", "extra_payout", "need_per_day",
-    "pace_per_day", "days_left", "focus_pieces", "kicker_per_piece",
+    "pace_per_day", "days_left", "focus_pieces", "kicker_per_piece", "pace_multiple",
 ]
 
 # Placeholders that only make sense for a rep who still has a step ahead.
 # Top-step reps have crossed the highest step, so these have no value.
-NEXT_STEP_PLACEHOLDERS = ["next_step", "gap", "extra_payout", "need_per_day"]
+NEXT_STEP_PLACEHOLDERS = ["next_step", "gap", "extra_payout", "need_per_day", "pace_multiple"]
 
 
 # ---------------------------------------------------------------------------
@@ -87,6 +87,8 @@ def rep_numbers(rep, scheme):
     - pace_per_day is rounded to the nearest rupee.
     - need_per_day is rounded UP, so a rep who sells that much each day
       really does reach the step (rounding down could leave them ₹1 short).
+    - pace_multiple_needed (pace needed / current pace) is rounded to 2
+      decimals, from the unrounded paces.
     """
     group, d = find_segment(rep["sales"], rep["start_day"], scheme["today"],
                        scheme["days_left"], scheme["thresholds"])
@@ -100,6 +102,7 @@ def rep_numbers(rep, scheme):
         "gap": None,
         "pace_per_day": round(d["pace"]),
         "need_per_day": None,
+        "pace_multiple_needed": None,
         "incentive_unlocked": None,
         "margin_if_cross": None,
     }
@@ -112,6 +115,8 @@ def rep_numbers(rep, scheme):
             "next_step": d["next_step"],
             "gap": gap,
             "need_per_day": math.ceil(d["needed_pace"]),
+            "pace_multiple_needed": (round(d["pace_multiple"], 2)
+                                     if d["pace_multiple"] is not None else None),
             "incentive_unlocked": at_next_step["total"] - now["total"],
             # Gross margin the company earns on the extra sales needed to
             # cross, at this rep's own margin rate.
@@ -198,7 +203,9 @@ def get_team_status(segment: str | None = None) -> dict[str, Any]:
             Leave empty to get every rep.
 
     Returns, for every rep: segment, sales so far, next step, gap to it,
-    current pace per day, pace needed per day (rupees) and flags. Flags are
+    current pace per day, pace needed per day (rupees),
+    pace_multiple_needed (pace needed / current pace, e.g. 2.27; quote this
+    instead of working out a ratio yourself) and flags. Flags are
     the same manager notes get_rep_detail returns (late_starter, bulk_order,
     each with a short note), so you don't need get_rep_detail just to find
     which reps are flagged; an empty list means no flags. In-reach reps are
@@ -218,7 +225,7 @@ def get_team_status(segment: str | None = None) -> dict[str, Any]:
         numbers, _, d = rep_numbers(rep, scheme)
         row = {key: numbers[key] for key in
                ["rep_id", "name", "segment", "sales", "next_step", "gap",
-                "pace_per_day", "need_per_day"]}
+                "pace_per_day", "need_per_day", "pace_multiple_needed"]}
         row["flags"] = rep_flags(db, rep, scheme, numbers, d)
         if numbers["segment"] == "in_reach":
             row["margin_if_cross"] = numbers["margin_if_cross"]
@@ -253,7 +260,8 @@ def get_rep_detail(rep_id: str) -> dict[str, Any]:
 
     Use this before writing to or calling a single rep, or when the manager
     asks about one person. Returns sales so far, focus pieces, current payout
-    (with breakdown), next step, gap, pace now and pace needed, the extra
+    (with breakdown), next step, gap, pace now and pace needed,
+    pace_multiple_needed (pace needed / current pace, e.g. 1.22), the extra
     payout unlocked by crossing, the segment, and flags.
 
     Flags are notes for the manager, not for the rep (get_team_status
@@ -351,8 +359,11 @@ def fill_nudges(segment: str, template: str) -> dict[str, Any]:
 
     Allowed placeholders: {name}, {sales}, {next_step}, {gap},
     {extra_payout}, {need_per_day}, {pace_per_day}, {days_left},
-    {focus_pieces}, {kicker_per_piece}. Rupee amounts come out like ₹23,360.
-    extra_payout is the payout unlocked by crossing the next step.
+    {focus_pieces}, {kicker_per_piece}, {pace_multiple}. Rupee amounts come
+    out like ₹23,360. extra_payout is the payout unlocked by crossing the
+    next step. pace_multiple is pace needed / current pace to 1 decimal,
+    with no unit, e.g. "2.3", so write "{pace_multiple}x" or
+    "{pace_multiple} times" in the template.
     Top-step reps have no next step, so for top_step use only name, sales,
     pace_per_day, days_left, focus_pieces and kicker_per_piece.
 
@@ -404,6 +415,9 @@ def fill_nudges(segment: str, template: str) -> dict[str, Any]:
                 "gap": rupees(numbers["gap"]),
                 "extra_payout": rupees(numbers["incentive_unlocked"]),
                 "need_per_day": rupees(numbers["need_per_day"]),
+                # No pace yet (no sales) means no multiple to state.
+                "pace_multiple": (f"{numbers['pace_multiple_needed']:.1f}"
+                                  if numbers["pace_multiple_needed"] is not None else "n/a"),
             })
         messages.append({"rep_id": rep["rep_id"], "name": rep["name"],
                          "message": template.format(**values)})

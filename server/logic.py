@@ -116,7 +116,10 @@ def segment(sales_so_far, start_day, today, days_left, thresholds):
     next_step = min(t for t in thresholds if t > sales_so_far)
     needed_pace = (next_step - sales_so_far) / days_left
     details = {"pace": current_pace, "projected": projected,
-               "next_step": next_step, "needed_pace": needed_pace}
+               "next_step": next_step, "needed_pace": needed_pace,
+               # How many times their current pace they need, e.g. 2.27.
+               # None for a rep with no sales yet (no pace to compare with).
+               "pace_multiple": needed_pace / current_pace if current_pace > 0 else None}
 
     if projected >= next_step:
         return "on_track", details

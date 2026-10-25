@@ -20,6 +20,7 @@
 | Focus pieces | Focus-SKU pieces sold this month, returns not subtracted |
 | `pace_per_day` | Sales ÷ days since the rep's start day (days included), rounded to the nearest rupee |
 | `need_per_day` | Gap ÷ days left, rounded **up**, so a rep who sells that much each day really does cross. Rounding down could leave them ₹1 short |
+| `pace_multiple_needed` | Pace needed ÷ current pace, from the unrounded paces, to 2 decimals (e.g. Isha 1.22). `null` for top-step reps and for a rep with no sales yet. The agent quotes this instead of dividing `need_per_day` by `pace_per_day` itself |
 | `gap` | Next step − sales. Reaching the threshold exactly counts as crossing it |
 | `incentive_unlocked` | Payout at the next step − payout now. For step 1 this includes the kicker on **all** focus pieces already sold, so it's more than ₹1,000 |
 | `margin_if_cross` | Gap × the rep's own gross margin rate, based on their product mix so far |
@@ -49,7 +50,7 @@
     "in_reach": [
       {"rep_id": "R14", "name": "Isha", "segment": "in_reach", "sales": 76640,
        "next_step": 100000, "gap": 23360, "pace_per_day": 3193, "need_per_day": 3894,
-       "flags": [],
+       "pace_multiple_needed": 1.22, "flags": [],
        "margin_if_cross": 6650, "incentive_unlocked": 2500, "call_priority": 2.66, "call_rank": 7},
       {"rep_id": "R37", "name": "Vidya", "segment": "in_reach", "...": "...",
        "flags": [{"type": "late_starter", "start_day": 10,
@@ -61,7 +62,7 @@
 }
 ```
 
-Top-step reps have `next_step`, `gap` and `need_per_day` set to `null`. In-reach reps are sorted by `call_priority`, highest first. Every rep has `flags`, the same list `get_rep_detail` returns (see the flag table there); an empty list means no flags.
+Top-step reps have `next_step`, `gap`, `need_per_day` and `pace_multiple_needed` set to `null`. In-reach reps are sorted by `call_priority`, highest first. Every rep has `flags`, the same list `get_rep_detail` returns (see the flag table there); an empty list means no flags.
 
 **Errors:** an unknown segment returns the error with `allowed_segments`.
 
@@ -70,6 +71,7 @@ Top-step reps have `next_step`, `gap` and `need_per_day` set to `null`. In-reach
 - **Only in-reach reps are ranked.** On-track reps should cross anyway, and far-behind reps need more than 1.5× their pace. A call is worth most to in-reach reps (PRD).
 - **Formula inputs are shown next to the score.** The PRD's "unexplainable ranking" risk: the manager can see why R03 ranks above R14.
 - **Flags are included for every rep.** Without them, the agent had to call `get_rep_detail` on each in-reach rep just to find out who was flagged (16 tool calls for one call list). Now it's 1. Both tools build flags with the same helper, so they can't disagree.
+- **The pace ratio is a field, not left to the agent.** Before `pace_multiple_needed` existed, the agent worked out "needs N times their pace" itself and sometimes got it wrong: it wrote "3 to 5 times" for far-behind reps whose real ratios run from 2.27 to 7.86. The eval check "pace multipliers from tools" caught this (case 7).
 
 ## 2. `get_rep_detail`
 
@@ -81,7 +83,7 @@ Top-step reps have `next_step`, `gap` and `need_per_day` set to `null`. In-reach
 |---|---|---|---|
 | `rep_id` | string | yes | For example `R14`. `r14` and `R5` are accepted too |
 
-**Output:** every field from `get_team_status` (including `flags`), plus `incentive_unlocked`, `margin_if_cross`, `start_day`, `days_worked`, `days_left`, `projected_month_end`, `focus_pieces`, `kicker_per_piece` and `current_payout` (same breakdown as `calculate_payout`).
+**Output:** every field from `get_team_status` (including `pace_multiple_needed` and `flags`), plus `incentive_unlocked`, `margin_if_cross`, `start_day`, `days_worked`, `days_left`, `projected_month_end`, `focus_pieces`, `kicker_per_piece` and `current_payout` (same breakdown as `calculate_payout`).
 
 ```json
 "flags": [
@@ -158,6 +160,7 @@ Top-step reps have `next_step`, `gap` and `need_per_day` set to `null`. In-reach
 | `{days_left}` | Days left | 6 |
 | `{focus_pieces}` | Focus pieces so far | 40 |
 | `{kicker_per_piece}` | Kicker per piece | ₹75 |
+| `{pace_multiple}` | `pace_multiple_needed` to 1 decimal, no unit. Write `{pace_multiple}x` or `{pace_multiple} times` | 1.2 |
 
 Rupees use Indian digit grouping: ₹23,360, ₹1,00,000, ₹12,34,567. Raw numbers in the other tools stay plain integers.
 
@@ -177,7 +180,7 @@ Rupees use Indian digit grouping: ₹23,360, ₹1,00,000, ₹12,34,567. Raw numb
 | Unknown segment | `allowed_segments` |
 | Unknown placeholder, e.g. `{bonus}` | The bad name(s) in `unknown_placeholders`, plus `allowed_placeholders` |
 | Broken braces, e.g. `{name` | `allowed_placeholders` |
-| `{next_step}`, `{gap}`, `{extra_payout}` or `{need_per_day}` used for `top_step` | `allowed_for_top_step`. Those reps have no next step |
+| `{next_step}`, `{gap}`, `{extra_payout}`, `{need_per_day}` or `{pace_multiple}` used for `top_step` | `allowed_for_top_step`. Those reps have no next step |
 
 The whole template is checked before any message is filled, so the result is either all messages or one error, never a partial batch.
 
