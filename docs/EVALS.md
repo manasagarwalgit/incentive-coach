@@ -161,14 +161,22 @@ Once `get_payout_totals` was built to fix that, case 13 was no longer unseen, so
 
 The canaries are blatant, one rule broken each, and each was run once. They show the judge can fail a clear violation, not that it catches subtle ones.
 
-**Human agreement: 10/10** (`docs/judge_check.md`).
+**Human agreement: 10/10** (`docs/judge_check.md`). The judge said "yes" (pass) on all 10 answers, and the project owner agreed each time.
+
+**What these two tests cover:** both test the judge for **leniency**, meaning false passes.
+
+- The canaries ask whether the judge fails answers that should fail.
+- The hand-check asks whether any of its passes were wrong.
+
+Neither tests **harshness**, meaning false fails: a good answer judged as failing. The judge failed no real answers in the final runs, so there was no "no" verdict to check.
 
 ## Limitations
 
 - **3 runs per case is a small sample.** 3/3 is consistent with a true failure rate well above zero; a case failing 1 run in 10 would pass all 3 runs about 73% of the time. The pass rates show that something works, not how reliably.
 - **The held-out cases were written by the same coding agent** that built the tools and the prompt (Claude Code, Opus). They are unseen by the project owner, not by the system that wrote them, so they may share its blind spots.
 - **The data is synthetic.** It's 50 made-up reps on day 24 of 30, generated to include specific edge cases (a late starter, three bulk orders). Real exports will have messier names, ids and distributions.
-- **The judge hand-check is a small, one-sided sample.** The project owner agreed with the judge on 10 of 10 answers in `docs/judge_check.md`. All 10 verdicts were "yes", so the check could find false passes but not false fails. The canaries cover the other direction, but only for blatant violations, and 10 items can't rule out an occasional misjudgment.
+- **The judge hand-check is a small sample.** The project owner agreed with the judge on 10 of 10 answers in `docs/judge_check.md`. 10 items can't rule out an occasional false pass, and the 4 canaries are blatant violations, not subtle ones.
+- **Judge harshness is untested.** The canaries and the hand-check both look for false passes. Nothing tests for false fails (good answers judged as failing), because the judge failed no real answers in the final runs. A harsh judge would show up as lower pass rates, so the final pass rates may understate the agent rather than overstate it.
 - **The pace check is a pattern match.** It catches numeric multipliers ("3x", "3 times", ranges, bounds) but not words like "double" or "twice". It also matches reps by first name or id, so a sentence naming a rep in passing narrows which ratios count.
 - **Re-scored judge checks reuse old verdicts.** `evals/rescore.py` doesn't ask the judge again, so re-scored files from before judge reasons existed have verdicts with no reasons.
 
@@ -179,4 +187,5 @@ Ideas considered and not pursued in this phase:
 - **More runs per case.** 10 or more runs per case would turn "passes" into a failure rate with a usable confidence interval.
 - **Independently written held-out cases.** Cases written by someone other than the coding agent, ideally a field sales manager, using real questions.
 - **Detecting "double" / "twice".** The pace check only reads numeric multipliers. Word forms would need their own patterns and tests.
+- **Test the judge on good answers.** Hand-written answers that follow every rule, including borderline ones like "that's a big stretch", to check the judge passes them. This would measure harshness, which nothing measures today.
 - **Re-judging old runs.** Ask the judge again on runs saved before judge reasons existed, so every judged result has a reason. This costs API calls, which the re-score avoids.
