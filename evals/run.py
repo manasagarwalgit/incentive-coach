@@ -4,10 +4,12 @@
 #     uv run python evals/run.py --dry-run              # no API calls, just checks the setup
 #     uv run python evals/run.py --set dev              # dev cases, 3 runs each
 #     uv run python evals/run.py --set held_out --runs 5
+#     uv run python evals/run.py --system-prompt agent/CLAUDE_minimal.md   # ablation
 #
 # What one run of one case does:
 #   1. Send the manager's question to the agent model, with agent/CLAUDE.md
-#      as the system prompt and the four MCP tools from server/main.py.
+#      (or the file given by --system-prompt) as the system prompt and the
+#      four MCP tools from server/main.py.
 #   2. Whenever the agent asks for a tool, call that Python function
 #      directly (no MCP server process needed) and send back the result.
 #   3. When the agent stops asking for tools, take its final answer.
@@ -46,7 +48,7 @@ from cases import CASES, cases_for  # noqa: E402
 
 AGENT_MODEL = "claude-sonnet-5-5"
 JUDGE_MODEL = "claude-opus-5-5"
-SYSTEM_PROMPT = (ROOT / "agent" / "CLAUDE.md").read_text()
+DEFAULT_SYSTEM_PROMPT = "agent/CLAUDE.md"   # relative to the project folder
 RESULTS_DIR = ROOT / "evals" / "results"
 
 # Stop a run if the agent keeps calling tools without ever answering.
@@ -126,7 +128,7 @@ def is_account_error(e):
 # Running the agent on one question
 # ---------------------------------------------------------------------------
 
-def run_agent(client, tools, question):
+def run_agent(client, tools, system_prompt, question):
     """Run the agent until it gives a final answer.
 
     Returns {"tool_calls": [{"name", "input"}...], "answer": str, "stop_reason": str}.
@@ -140,7 +142,7 @@ def run_agent(client, tools, question):
             client,
             model=AGENT_MODEL,
             max_tokens=16000,
-            system=SYSTEM_PROMPT,
+            system=system_prompt,
             tools=tools,
             messages=messages,
         )
@@ -272,7 +274,7 @@ def print_table(records):
 # Dry run: check the setup without calling the API
 # ---------------------------------------------------------------------------
 
-def dry_run(cases, tools):
+def dry_run(cases, tools, prompt_path, system_prompt):
     """Validate the cases and tools. Makes no API calls and writes no files."""
     problems = []
 
@@ -329,7 +331,7 @@ def dry_run(cases, tools):
                 print(f"       judge: {check['rubric']}")
 
     # 4. The system prompt and API key are in place (the key is never printed).
-    print(f"\nSystem prompt: agent/CLAUDE.md ({len(SYSTEM_PROMPT):,} chars)")
+    print(f"\nSystem prompt: {prompt_path} ({len(system_prompt):,} chars)")
     print(f"Agent model: {AGENT_MODEL}   Judge model: {JUDGE_MODEL}")
     print(f"ANTHROPIC_API_KEY in environment: {'yes' if os.environ.get('ANTHROPIC_API_KEY') else 'no'}")
 
@@ -351,14 +353,18 @@ def main():
     parser.add_argument("--runs", type=int, default=3, help="runs per case (default 3)")
     parser.add_argument("--dry-run", action="store_true",
                         help="validate cases and tools without calling the API")
+    parser.add_argument("--system-prompt", default=DEFAULT_SYSTEM_PROMPT, metavar="PATH",
+                        help=f"system prompt file, relative to the project folder "
+                             f"(default {DEFAULT_SYSTEM_PROMPT}); use another file for ablations")
     args = parser.parse_args()
 
     load_dotenv(ROOT / ".env")   # puts ANTHROPIC_API_KEY into os.environ, if .env exists
     cases = cases_for(args.set)
     tools = tool_definitions()
+    system_prompt = (ROOT / args.system_prompt).read_text()
 
     if args.dry_run:
-        dry_run(cases, tools)
+        dry_run(cases, tools, args.system_prompt, system_prompt)
         return
 
     if not os.environ.get("ANTHROPIC_API_KEY"):
@@ -370,7 +376,7 @@ def main():
         for run in range(1, args.runs + 1):
             print(f"case {case['id']:>2} run {run}/{args.runs} ...", end=" ", flush=True)
             try:
-                result = run_agent(client, tools, case["question"])
+                result = run_agent(client, tools, system_prompt, case["question"])
                 checks = score(client, case, result)
                 error = None
             except anthropic.APIError as e:
@@ -407,6 +413,7 @@ def main():
     path.write_text(json.dumps({
         "set": args.set, "runs": args.runs,
         "agent_model": AGENT_MODEL, "judge_model": JUDGE_MODEL,
+        "system_prompt": args.system_prompt,
         "records": records,
     }, indent=2, ensure_ascii=False))
     print_table(records)

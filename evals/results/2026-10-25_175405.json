@@ -1,0 +1,957 @@
+{
+  "set": "dev",
+  "runs": 3,
+  "agent_model": "claude-sonnet-5-5",
+  "judge_model": "claude-opus-5-5",
+  "records": [
+    {
+      "case_id": 1,
+      "set": "dev",
+      "category": "routing",
+      "question": "Who should I call today?",
+      "run": 1,
+      "tool_calls": [
+        {
+          "name": "get_team_status",
+          "input": {
+            "segment": "in_reach"
+          }
+        }
+      ],
+      "answer": "It's day 24 of 30, so there are 6 days left. I'd call these five reps first. Each is in reach of the ₹75,000 step.\n\n| Rank | Rep | Sales so far | Gap to ₹75,000 | Pace now → needed per day | Margin if cross | Incentive unlocked | Priority |\n|---|---|---|---|---|---|---|---|\n| 1 | Akash (R03) | ₹56,880 | ₹18,120 | ₹2,370 → ₹3,020 | ₹5,266 | ₹1,500 | 3.51 |\n| 2 | Hema (R44) | ₹57,160 | ₹17,840 | ₹2,382 → ₹2,974 | ₹5,228 | ₹1,500 | 3.49 |\n| 3 | Suresh (R32) | ₹57,690 | ₹17,310 | ₹2,404 → ₹2,885 | ₹5,017 | ₹1,500 | 3.34 |\n| 4 | Meera (R20) | ₹57,585 | ₹17,415 | ₹2,399 → ₹2,903 | ₹4,973 | ₹1,500 | 3.32 |\n| 5 | Anil (R41) | ₹58,620 | ₹16,380 | ₹2,442 → ₹2,730 | ₹4,617 | ₹1,500 | 3.08 |\n\n**How the ranking works:** priority is margin if the rep crosses, divided by the incentive unlocked. A higher number means the rep is a better use of your call. These five unlock only ₹1,500 each, but the margin is large, so they rank highest.\n\n**Next group:** the ₹100,000-step reps are ranks 6–10.\n- Kavya: priority 2.70, gap ₹23,045.\n- Isha: 2.66.\n- Kunal: 2.64.\n- Rahul: 2.59.\n- Bina: 2.45, gap ₹21,295. She needs ₹3,550 per day, the smallest daily rate in this group.\n\n**Lower priority:** ranks 11–15 are reps heading for the ₹50,000 step. Their priority runs from 2.05 down to 1.20.\n- Vidya (priority 2.05)\n- Rohan (1.38)\n- Jaya (1.33)\n- Sanya (1.21)\n- Aarav (1.20)\n\n**Note on Vidya (R37):** she started on day 10, so her pace is averaged over 15 days instead of 24. Keep that in mind when you talk to her about her numbers.\n\nI can draft a nudge message for the in-reach group if you'd like. You would send it yourself.",
+      "stop_reason": "end_turn",
+      "checks": [
+        {
+          "name": "calls get_team_status",
+          "method": "code",
+          "passed": true,
+          "detail": "tools called: ['get_team_status']"
+        },
+        {
+          "name": "exactly 1 tool call",
+          "method": "code",
+          "passed": true,
+          "detail": "1 tool call(s): ['get_team_status']"
+        }
+      ],
+      "error": null,
+      "outcome": "pass"
+    },
+    {
+      "case_id": 1,
+      "set": "dev",
+      "category": "routing",
+      "question": "Who should I call today?",
+      "run": 2,
+      "tool_calls": [
+        {
+          "name": "get_team_status",
+          "input": {
+            "segment": "in_reach"
+          }
+        }
+      ],
+      "answer": "Here are the top five reps to call today. There are 6 days left in the month. The ranking is call_priority, which is margin_if_cross divided by incentive_unlocked. A higher number means call that rep first.\n\n| Rank | Rep | Sales so far | Next step | Gap | Pace now → needed per day | Margin if they cross | Incentive unlocked | Priority |\n|---|---|---|---|---|---|---|---|---|\n| 1 | Akash (R03) | ₹56,880 | ₹75,000 | ₹18,120 | ₹2,370 → ₹3,020 | ₹5,266 | ₹1,500 | 3.51 |\n| 2 | Hema (R44) | ₹57,160 | ₹75,000 | ₹17,840 | ₹2,382 → ₹2,974 | ₹5,228 | ₹1,500 | 3.49 |\n| 3 | Suresh (R32) | ₹57,690 | ₹75,000 | ₹17,310 | ₹2,404 → ₹2,885 | ₹5,017 | ₹1,500 | 3.34 |\n| 4 | Meera (R20) | ₹57,585 | ₹75,000 | ₹17,415 | ₹2,399 → ₹2,903 | ₹4,973 | ₹1,500 | 3.32 |\n| 5 | Anil (R41) | ₹58,620 | ₹75,000 | ₹16,380 | ₹2,442 → ₹2,730 | ₹4,617 | ₹1,500 | 3.08 |\n\n**Why they rank highest:** All five are heading for the ₹75,000 step. Crossing it unlocks only ₹1,500 of incentive, but each rep would still have a margin of about ₹4,600 to ₹5,300 above the step. That gives them the highest margin per rupee of incentive.\n\n**Next in line (ranks 6–10):** These reps are going for the ₹1,00,000 step, which unlocks ₹2,500.\n- Kavya (R16), priority 2.70\n- Isha (R14), priority 2.66\n- Kunal (R47), priority 2.64\n- Rahul (R26), priority 2.59\n- Bina (R42), priority 2.45\n\n**Lower priority (ranks 11–15):** These reps are going for the ₹50,000 step. They get lower priority because crossing unlocks more incentive (₹2,350 to ₹2,950) for a smaller margin.\n- Vidya (R37), priority 2.05\n- Rohan (R28), priority 1.38\n- Jaya (R46), priority 1.33\n- Sanya (R29), priority 1.21\n- Aarav (R01), priority 1.20\n\n**Note for you, not for the rep:** Vidya (R37) is a late starter. She started on day 10, so her pace of ₹2,219 per day is averaged over 15 days, not 24. Keep that in mind when you talk to her.\n\nI can draft nudge messages for any of these groups, or look at one rep in more detail.",
+      "stop_reason": "end_turn",
+      "checks": [
+        {
+          "name": "calls get_team_status",
+          "method": "code",
+          "passed": true,
+          "detail": "tools called: ['get_team_status']"
+        },
+        {
+          "name": "exactly 1 tool call",
+          "method": "code",
+          "passed": true,
+          "detail": "1 tool call(s): ['get_team_status']"
+        }
+      ],
+      "error": null,
+      "outcome": "pass"
+    },
+    {
+      "case_id": 1,
+      "set": "dev",
+      "category": "routing",
+      "question": "Who should I call today?",
+      "run": 3,
+      "tool_calls": [
+        {
+          "name": "get_team_status",
+          "input": {
+            "segment": "in_reach"
+          }
+        }
+      ],
+      "answer": "Today is day 24 of 30, so 6 days are left. These are the in-reach reps in call order. Calls are ranked by call priority, which is the margin if the rep crosses divided by the incentive unlocked.\n\n**Call these first (top 5, all aiming for the ₹75,000 step, unlocking ₹1,500 each):**\n1. **Akash (R03)** – priority 3.51. He has sold ₹56,880 and is ₹18,120 short. He sells ₹2,370 a day now and needs ₹3,020 a day. Crossing gives a margin of ₹5,266.\n2. **Hema (R44)** – priority 3.49. She has sold ₹57,160 and is ₹17,840 short. She sells ₹2,382 a day and needs ₹2,974. The margin is ₹5,228.\n3. **Suresh (R32)** – priority 3.34. He has sold ₹57,690 and is ₹17,310 short. He sells ₹2,404 a day and needs ₹2,885. The margin is ₹5,017.\n4. **Meera (R20)** – priority 3.32. She has sold ₹57,585 and is ₹17,415 short. She sells ₹2,399 a day and needs ₹2,903. The margin is ₹4,973.\n5. **Anil (R41)** – priority 3.08. He has sold ₹58,620 and is ₹16,380 short. He sells ₹2,442 a day and needs ₹2,730. The margin is ₹4,617.\n\n**Next group (aiming for the ₹1,00,000 step, unlocking ₹2,500 each):**\n6. **Kavya (R16)** – priority 2.70. She is ₹23,045 short and needs ₹3,841 a day. She sells ₹3,206 a day now.\n7. **Isha (R14)** – priority 2.66. She is ₹23,360 short and needs ₹3,894 a day. She sells ₹3,193 a day now.\n8. **Kunal (R47)** – priority 2.64. He is ₹23,625 short and needs ₹3,938 a day. He sells ₹3,182 a day now.\n9. **Rahul (R26)** – priority 2.59. He is ₹23,735 short and needs ₹3,956 a day. He sells ₹3,178 a day now.\n10. **Bina (R42)** – priority 2.45. She is ₹21,295 short and needs ₹3,550 a day. She sells ₹3,279 a day now.\n\n**Lower priority (aiming for the ₹50,000 step, unlocking ₹2,350 to ₹2,950):**\n11. **Vidya (R37)** – priority 2.05. She is ₹16,720 short and needs ₹2,787 a day. She sells ₹2,219 a day now.\n12. **Rohan (R28)** – priority 1.38. He is ₹13,070 short and needs ₹2,179 a day. He sells ₹1,539 a day now.\n13. **Jaya (R46)** – priority 1.33. She is ₹13,090 short and needs ₹2,182 a day. She sells ₹1,538 a day now.\n14. **Sanya (R29)** – priority 1.21. She is ₹11,700 short and needs ₹1,950 a day. She sells ₹1,596 a day now.\n15. **Aarav (R01)** – priority 1.20. He is ₹11,660 short and needs ₹1,944 a day. He sells ₹1,598 a day now.\n\n**Why this order:** The top five get a higher priority because crossing gives them a large margin (₹4,600 to ₹5,300) for a small incentive cost (₹1,500). The lower group unlocks more incentive (₹2,350 to ₹2,950) for a smaller margin, so their priority is lower.\n\n**Note on Vidya (R37):** She is a late starter. She began on day 10, so her pace is averaged over 15 days, not 24. Keep that in mind when you talk to her. Don't pass it on to her as a flag.\n\nI can draft nudge messages for any of these groups if you want them. You would send them yourself.",
+      "stop_reason": "end_turn",
+      "checks": [
+        {
+          "name": "calls get_team_status",
+          "method": "code",
+          "passed": true,
+          "detail": "tools called: ['get_team_status']"
+        },
+        {
+          "name": "exactly 1 tool call",
+          "method": "code",
+          "passed": true,
+          "detail": "1 tool call(s): ['get_team_status']"
+        }
+      ],
+      "error": null,
+      "outcome": "pass"
+    },
+    {
+      "case_id": 2,
+      "set": "dev",
+      "category": "routing",
+      "question": "Tell me about Isha (R14)",
+      "run": 1,
+      "tool_calls": [
+        {
+          "name": "get_rep_detail",
+          "input": {
+            "rep_id": "R14"
+          }
+        }
+      ],
+      "answer": "**Isha (R14): in reach of the next step**\n\n- **Sales so far:** ₹76,640\n- **Next step:** ₹1,00,000. She is ₹23,360 short.\n- **Pace:** She sells ₹3,193 a day now. She needs ₹3,894 a day over the 6 days left.\n- **Current payout:** ₹5,500. That is ₹2,500 for the step she has crossed (step 2) plus a ₹3,000 focus kicker (40 focus pieces at ₹75 each).\n- **Crossing the next step unlocks:** ₹2,500 more.\n- **Margin if she crosses:** ₹6,650.\n- **Flags:** None.\n\nShe needs about ₹700 a day more than her current pace. Focus pieces also add ₹75 each to her kicker.\n\nI can draft a nudge for Isha's segment, or show you where she sits in the call order.",
+      "stop_reason": "end_turn",
+      "checks": [
+        {
+          "name": "calls get_rep_detail",
+          "method": "code",
+          "passed": true,
+          "detail": "tools called: ['get_rep_detail']"
+        }
+      ],
+      "error": null,
+      "outcome": "pass"
+    },
+    {
+      "case_id": 2,
+      "set": "dev",
+      "category": "routing",
+      "question": "Tell me about Isha (R14)",
+      "run": 2,
+      "tool_calls": [
+        {
+          "name": "get_rep_detail",
+          "input": {
+            "rep_id": "R14"
+          }
+        }
+      ],
+      "answer": "**Isha (R14): in reach of the next step**\n\n- **Sales so far:** ₹76,640\n- **Next step:** ₹1,00,000. She is ₹23,360 short.\n- **Pace:** She sells ₹3,193 a day now. She needs ₹3,894 a day over the 6 days left.\n- **Current payout:** ₹5,500. That is ₹2,500 for the step 2 payout plus ₹3,000 in focus kicker (40 focus pieces at ₹75 each).\n- **Crossing ₹1,00,000 unlocks:** ₹2,500 more.\n- **Margin if she crosses:** ₹6,650. This is the call-priority numerator, margin_if_cross.\n- **Flags:** None. She started on day 1 and has no bulk-order flag, so her pace is a reliable figure.\n\nShe needs about ₹700 a day more than her current pace. A call could focus on how to lift her daily sales. Focus pieces also add to her kicker at ₹75 each.\n\nI can draft a nudge for her segment, or run a what-if payout for her.",
+      "stop_reason": "end_turn",
+      "checks": [
+        {
+          "name": "calls get_rep_detail",
+          "method": "code",
+          "passed": true,
+          "detail": "tools called: ['get_rep_detail']"
+        }
+      ],
+      "error": null,
+      "outcome": "pass"
+    },
+    {
+      "case_id": 2,
+      "set": "dev",
+      "category": "routing",
+      "question": "Tell me about Isha (R14)",
+      "run": 3,
+      "tool_calls": [
+        {
+          "name": "get_rep_detail",
+          "input": {
+            "rep_id": "R14"
+          }
+        }
+      ],
+      "answer": "**Isha (R14): in reach of the next step**\n\n- **Sales so far:** ₹76,640\n- **Next step:** ₹1,00,000. She is ₹23,360 short.\n- **Pace:** She is selling ₹3,193 a day now. She needs ₹3,894 a day over the 6 days left.\n- **Current payout:** ₹5,500. That is ₹2,500 for the step 2 payout plus ₹3,000 in focus kicker (40 focus pieces at ₹75 each).\n- **Extra payout if she crosses:** ₹2,500.\n- **Margin if she crosses:** ₹6,650. Her call priority is 6,650 ÷ 2,500 = 2.66.\n- **Flags:** None. She started on day 1, and there is no bulk order in her numbers.\n\nIf you want, I can draft a nudge for the in-reach group. I can also run a what-if on her payout.",
+      "stop_reason": "end_turn",
+      "checks": [
+        {
+          "name": "calls get_rep_detail",
+          "method": "code",
+          "passed": true,
+          "detail": "tools called: ['get_rep_detail']"
+        }
+      ],
+      "error": null,
+      "outcome": "pass"
+    },
+    {
+      "case_id": 3,
+      "set": "dev",
+      "category": "routing",
+      "question": "If Isha sells 10,000 more, what does she earn?",
+      "run": 1,
+      "tool_calls": [
+        {
+          "name": "get_team_status",
+          "input": {}
+        },
+        {
+          "name": "calculate_payout",
+          "input": {
+            "rep_id": "R14",
+            "extra_sales": 10000
+          }
+        }
+      ],
+      "answer": "If Isha (R14) sells ₹10,000 more, she earns **₹5,500**. That's the same as her payout now, so the extra sales add ₹0.\n\n- **Now:** her sales are ₹76,640. She has crossed step 2, which pays ₹2,500. Her 40 focus pieces at ₹75 each add a ₹3,000 kicker. The total is ₹5,500.\n- **After ₹10,000 more:** her sales would be ₹86,640. That is still short of the next step at ₹100,000, so her step payout stays at ₹2,500. The kicker stays at ₹3,000 as long as none of the extra sales are focus pieces.\n\nCrossing ₹100,000 would unlock ₹2,500 more. She is ₹23,360 short of it. With 6 days left, she needs ₹3,894 a day, and her current pace is ₹3,193 a day.\n\nIf some of the ₹10,000 were focus pieces, each would add ₹75 to her kicker. I can run that if you tell me how many pieces.",
+      "stop_reason": "end_turn",
+      "checks": [
+        {
+          "name": "calls calculate_payout",
+          "method": "code",
+          "passed": true,
+          "detail": "tools called: ['get_team_status', 'calculate_payout']"
+        }
+      ],
+      "error": null,
+      "outcome": "pass"
+    },
+    {
+      "case_id": 3,
+      "set": "dev",
+      "category": "routing",
+      "question": "If Isha sells 10,000 more, what does she earn?",
+      "run": 2,
+      "tool_calls": [
+        {
+          "name": "get_team_status",
+          "input": {}
+        },
+        {
+          "name": "calculate_payout",
+          "input": {
+            "rep_id": "R14",
+            "extra_sales": 10000
+          }
+        }
+      ],
+      "answer": "If Isha (R14) sells ₹10,000 more, her payout stays at **₹5,500**, so she earns ₹0 extra.\n\n- **Now:** her sales are ₹76,640. She has crossed step 2, which pays ₹2,500. Her 40 focus pieces at ₹75 each add a ₹3,000 kicker. That makes ₹5,500.\n- **After ₹10,000 more:** her sales would be ₹86,640. That is still below the next step at ₹1,00,000, so the step payout doesn't change. I assumed none of the extra sales are focus pieces, so the kicker stays the same too.\n\nShe needs ₹23,360 more to reach ₹1,00,000. That works out to ₹3,894 a day over the 6 days left, against her current pace of ₹3,193 a day. Crossing would unlock another ₹2,500.\n\nIf you want, I can check what she would earn if some of the extra sales were focus pieces. Each one adds ₹75 to her kicker.",
+      "stop_reason": "end_turn",
+      "checks": [
+        {
+          "name": "calls calculate_payout",
+          "method": "code",
+          "passed": true,
+          "detail": "tools called: ['get_team_status', 'calculate_payout']"
+        }
+      ],
+      "error": null,
+      "outcome": "pass"
+    },
+    {
+      "case_id": 3,
+      "set": "dev",
+      "category": "routing",
+      "question": "If Isha sells 10,000 more, what does she earn?",
+      "run": 3,
+      "tool_calls": [
+        {
+          "name": "get_team_status",
+          "input": {}
+        },
+        {
+          "name": "calculate_payout",
+          "input": {
+            "rep_id": "R14",
+            "extra_sales": 10000
+          }
+        }
+      ],
+      "answer": "If Isha (R14) sells ₹10,000 more, her payout stays at **₹5,500**, the same as now.\n\n- **Now:** her sales are ₹76,640. She has crossed step 2, which pays ₹2,500. Her 40 focus pieces at ₹75 each add ₹3,000. That makes ₹5,500.\n- **After ₹10,000 more:** her sales would be ₹86,640. That is still short of the next step at ₹100,000, so the step payout doesn't change. I assumed none of the extra sales are focus pieces, so the kicker stays at ₹3,000.\n\n**Next step:** she is ₹23,360 short of ₹100,000. Crossing it would unlock ₹2,500 more. To get there in the 6 days left she would need ₹3,894 a day. Her current pace is ₹3,193 a day.\n\n**Focus pieces:** each extra focus piece adds ₹75 to her payout. If you tell me how many of the ₹10,000 would be focus pieces, I can rerun the figure.",
+      "stop_reason": "end_turn",
+      "checks": [
+        {
+          "name": "calls calculate_payout",
+          "method": "code",
+          "passed": true,
+          "detail": "tools called: ['get_team_status', 'calculate_payout']"
+        }
+      ],
+      "error": null,
+      "outcome": "pass"
+    },
+    {
+      "case_id": 4,
+      "set": "dev",
+      "category": "accuracy",
+      "question": "If Isha sells 10,000 more, what does she earn?",
+      "run": 1,
+      "tool_calls": [
+        {
+          "name": "get_team_status",
+          "input": {}
+        },
+        {
+          "name": "calculate_payout",
+          "input": {
+            "rep_id": "R14",
+            "extra_sales": 10000
+          }
+        }
+      ],
+      "answer": "If Isha (R14) sells ₹10,000 more, she earns **₹5,500**. That's the same as her payout now, so the extra sales add ₹0.\n\n- Her sales would go from ₹76,640 to ₹86,640. That is still below the next step at ₹100,000, so her step payout stays at ₹2,500.\n- Her focus kicker stays at ₹3,000 (40 focus pieces × ₹75). Extra sales only raise the kicker if they include focus pieces.\n- She is ₹23,360 short of the ₹100,000 step. Crossing it would unlock ₹2,500 more. With 6 days left she needs ₹3,894 per day, against her current ₹3,193 per day.\n\nI can run the same calculation with some of the ₹10,000 counted as focus pieces. Tell me how many pieces and I'll work it out.",
+      "stop_reason": "end_turn",
+      "checks": [
+        {
+          "name": "payout matches calculate_payout",
+          "method": "code",
+          "passed": true,
+          "detail": "expected ₹5,500 in answer"
+        }
+      ],
+      "error": null,
+      "outcome": "pass"
+    },
+    {
+      "case_id": 4,
+      "set": "dev",
+      "category": "accuracy",
+      "question": "If Isha sells 10,000 more, what does she earn?",
+      "run": 2,
+      "tool_calls": [
+        {
+          "name": "get_team_status",
+          "input": {}
+        },
+        {
+          "name": "calculate_payout",
+          "input": {
+            "rep_id": "R14",
+            "extra_sales": 10000
+          }
+        }
+      ],
+      "answer": "If Isha (R14) sells ₹10,000 more, she earns **₹5,500**. That's the same as she earns now, so her payout goes up by ₹0.\n\n- Her sales would go from ₹76,640 to ₹86,640. That is still below the next step at ₹100,000, so her step payout stays at ₹2,500.\n- Her focus kicker stays at ₹3,000. That is 40 focus pieces at ₹75 each. I assumed none of the extra sales are focus pieces.\n- If some of the ₹10,000 were focus pieces, each one would add ₹75.\n- To reach the ₹100,000 step she needs ₹23,360 more. That is about ₹3,894 a day over the 6 days left, and her current pace is ₹3,193 a day. Crossing the step would unlock another ₹2,500.\n\nI can run the numbers again with a specific number of extra focus pieces if you'd like.",
+      "stop_reason": "end_turn",
+      "checks": [
+        {
+          "name": "payout matches calculate_payout",
+          "method": "code",
+          "passed": true,
+          "detail": "expected ₹5,500 in answer"
+        }
+      ],
+      "error": null,
+      "outcome": "pass"
+    },
+    {
+      "case_id": 4,
+      "set": "dev",
+      "category": "accuracy",
+      "question": "If Isha sells 10,000 more, what does she earn?",
+      "run": 3,
+      "tool_calls": [
+        {
+          "name": "get_team_status",
+          "input": {}
+        },
+        {
+          "name": "calculate_payout",
+          "input": {
+            "rep_id": "R14",
+            "extra_sales": 10000
+          }
+        }
+      ],
+      "answer": "If Isha (R14) sells ₹10,000 more, her payout stays at **₹5,500**, so she earns nothing extra.\n\n- **Now:** Her sales are ₹76,640. She has crossed step 2, which pays ₹2,500. Her 40 focus pieces at ₹75 each add a ₹3,000 kicker. That makes ₹5,500.\n- **After ₹10,000 more:** Her sales would be ₹86,640. That is still below the next step at ₹100,000, so the step payout stays at ₹2,500. The kicker stays at ₹3,000 because the extra sales include no focus pieces.\n\n**What would raise her payout:**\n- **Focus pieces:** Each extra focus piece adds ₹75 to her kicker. I can run the numbers if you give me a number of pieces.\n- **The ₹100,000 step:** She is ₹23,360 short. Crossing it unlocks ₹2,500 more. She would need about ₹3,894 a day over the 6 days left, and her current pace is ₹3,193 a day.",
+      "stop_reason": "end_turn",
+      "checks": [
+        {
+          "name": "payout matches calculate_payout",
+          "method": "code",
+          "passed": true,
+          "detail": "expected ₹5,500 in answer"
+        }
+      ],
+      "error": null,
+      "outcome": "pass"
+    },
+    {
+      "case_id": 5,
+      "set": "dev",
+      "category": "accuracy",
+      "question": "How many in-reach reps are chasing each step?",
+      "run": 1,
+      "tool_calls": [
+        {
+          "name": "get_team_status",
+          "input": {
+            "segment": "in_reach"
+          }
+        }
+      ],
+      "answer": "There are 15 in-reach reps. Here is how they split by the step they're chasing:\n\n| Next step | Reps chasing | Who (call rank) |\n|---|---|---|\n| ₹50,000 | 5 | Vidya (11), Rohan (12), Jaya (13), Sanya (14), Aarav (15) |\n| ₹75,000 | 5 | Akash (1), Hema (2), Suresh (3), Meera (4), Anil (5) |\n| ₹1,00,000 | 5 | Kavya (6), Isha (7), Kunal (8), Rahul (9), Bina (10) |\n\n- **Call order:** The call order is by call_priority, which is margin_if_cross divided by incentive_unlocked. The ₹75,000 chasers rank highest, at 3.08 to 3.51. The ₹1,00,000 chasers come next, at 2.45 to 2.70. The ₹50,000 chasers are last, at 1.20 to 2.05.\n- **Pace needed per day:**\n  - ₹75,000 group: ₹2,730 to ₹3,020.\n  - ₹1,00,000 group: ₹3,550 to ₹3,956.\n  - ₹50,000 group: ₹1,944 to ₹2,787.\n- **Flag for you:** Vidya (R37) is a late starter. She began on day 10, so her pace of ₹2,219 a day is averaged over 15 days, not 24. This note is for you and not for her.\n\nI can draft nudges for any of these groups if you want them.",
+      "stop_reason": "end_turn",
+      "checks": [
+        {
+          "name": "per-step counts match logic.py",
+          "method": "code",
+          "passed": true,
+          "detail": "expected {50000: 5, 75000: 5, 100000: 5}; missing: none"
+        }
+      ],
+      "error": null,
+      "outcome": "pass"
+    },
+    {
+      "case_id": 5,
+      "set": "dev",
+      "category": "accuracy",
+      "question": "How many in-reach reps are chasing each step?",
+      "run": 2,
+      "tool_calls": [
+        {
+          "name": "get_team_status",
+          "input": {
+            "segment": "in_reach"
+          }
+        }
+      ],
+      "answer": "There are 15 in-reach reps, with 6 days left in the month. Here is how many are chasing each step:\n\n| Next step | Reps chasing | Who |\n|---|---|---|\n| ₹50,000 | 5 | Vidya, Rohan, Jaya, Sanya, Aarav |\n| ₹75,000 | 5 | Akash, Hema, Suresh, Meera, Anil |\n| ₹100,000 | 5 | Kavya, Isha, Kunal, Rahul, Bina |\n\n**Pace needed per day for each group**\n- **₹50,000 step:** ₹1,944 to ₹2,787 a day. Their current pace is ₹1,538 to ₹2,219 a day.\n- **₹75,000 step:** ₹2,730 to ₹3,020 a day. Their current pace is ₹2,370 to ₹2,442 a day.\n- **₹100,000 step:** ₹3,550 to ₹3,956 a day. Their current pace is ₹3,178 to ₹3,279 a day.\n\n**Call order**\n- The call order follows margin_if_cross divided by incentive_unlocked.\n- The ₹75,000 group ranks highest, at 3.08 to 3.51. Akash is first at 3.51, with a margin of ₹5,266 on an unlock of ₹1,500.\n- The ₹100,000 group is next, at 2.45 to 2.70.\n- The ₹50,000 group is last, at 1.20 to 2.05. Vidya is the exception at 2.05, and the others are at 1.20 to 1.38.\n\n**Flag for you, not the rep:** Vidya (₹50,000 group) is a late starter. She started on day 10, so her pace is averaged over 15 days rather than 24.\n\nI can draft a nudge for the in-reach segment if you'd like.",
+      "stop_reason": "end_turn",
+      "checks": [
+        {
+          "name": "per-step counts match logic.py",
+          "method": "code",
+          "passed": true,
+          "detail": "expected {50000: 5, 75000: 5, 100000: 5}; missing: none"
+        }
+      ],
+      "error": null,
+      "outcome": "pass"
+    },
+    {
+      "case_id": 5,
+      "set": "dev",
+      "category": "accuracy",
+      "question": "How many in-reach reps are chasing each step?",
+      "run": 3,
+      "tool_calls": [
+        {
+          "name": "get_team_status",
+          "input": {
+            "segment": "in_reach"
+          }
+        }
+      ],
+      "answer": "There are 15 in-reach reps. Here is how many are chasing each step:\n\n| Next step | Reps | Who |\n|---|---|---|\n| ₹50,000 | 5 | Vidya, Rohan, Jaya, Sanya, Aarav |\n| ₹75,000 | 5 | Akash, Hema, Suresh, Meera, Anil |\n| ₹100,000 | 5 | Kavya, Isha, Kunal, Rahul, Bina |\n\n**Pace needed per day, with 6 days left**\n- **₹50,000 step:** ₹1,944 to ₹2,787 a day. Vidya needs the most (₹2,787) and Aarav the least (₹1,944).\n- **₹75,000 step:** ₹2,730 to ₹3,020 a day. Akash needs the most and Anil the least.\n- **₹100,000 step:** ₹3,550 to ₹3,956 a day. Rahul needs the most and Bina the least.\n\n**Call order**\n- Call priority is margin if the rep crosses, divided by the incentive unlocked. A higher number means call first.\n- The ₹75,000 group ranks highest (ranks 1–5, priority 3.08 to 3.51). Each of them unlocks ₹1,500.\n- The ₹100,000 group is next (ranks 6–10, priority 2.45 to 2.70). Each unlocks ₹2,500.\n- The ₹50,000 group is last (ranks 11–15, priority 1.20 to 2.05). Each unlocks ₹2,350 to ₹2,950.\n\n**Flag for you, not the rep:** Vidya (R37) is a late starter. She started on day 10, so her pace of ₹2,219 a day is averaged over 15 days, not 24.\n\nI can draft nudges for any of these groups if you want them.",
+      "stop_reason": "end_turn",
+      "checks": [
+        {
+          "name": "per-step counts match logic.py",
+          "method": "code",
+          "passed": true,
+          "detail": "expected {50000: 5, 75000: 5, 100000: 5}; missing: none"
+        }
+      ],
+      "error": null,
+      "outcome": "pass"
+    },
+    {
+      "case_id": 6,
+      "set": "dev",
+      "category": "flags",
+      "question": "Is Arjun (R05) safe to leave alone this week?",
+      "run": 1,
+      "tool_calls": [
+        {
+          "name": "get_rep_detail",
+          "input": {
+            "rep_id": "R05"
+          }
+        }
+      ],
+      "answer": "**Arjun (R05) is in the \"on track\" segment, but the numbers are flattered by one large order, so I wouldn't treat him as safe without a quick check.**\n\n- **Sales so far:** ₹95,435. He is ₹4,565 short of the ₹1,00,000 step.\n- **Pace needed:** ₹761 a day over the 6 days left.\n- **Current pace:** ₹3,976 a day, averaged over 24 days worked.\n- **Payout now:** ₹5,650, made up of ₹2,500 step payout and a ₹3,150 focus kicker (42 pieces at ₹75).\n- **Extra from crossing ₹1,00,000:** ₹2,500 more in step payout. The tool's margin figure if he crosses is ₹1,271.\n\n**Note for you, not for Arjun:** He has a bulk-order flag. On day 17 he had a single order of ₹17,105. The pace and \"on track\" label treat that order as repeatable. Without it, his sales would be ₹78,330, and he would be in the \"in reach\" segment.\n\nThe ₹17,105 order still counts toward his ₹95,435. His ₹761 a day need is a small fraction of his current pace, but that pace is inflated by the bulk order. His normal day-to-day selling is the better guide to what he needs.\n\nA short check-in could help. Ask whether he has orders lined up, and whether the ₹4,565 gap is covered by normal selling or still depends on another big order.\n\nI can draft a light-touch nudge for him if you'd like.",
+      "stop_reason": "end_turn",
+      "checks": [
+        {
+          "name": "mentions the bulk order",
+          "method": "code",
+          "passed": true,
+          "detail": "answer mentions 'bulk'"
+        }
+      ],
+      "error": null,
+      "outcome": "pass"
+    },
+    {
+      "case_id": 6,
+      "set": "dev",
+      "category": "flags",
+      "question": "Is Arjun (R05) safe to leave alone this week?",
+      "run": 2,
+      "tool_calls": [
+        {
+          "name": "get_rep_detail",
+          "input": {
+            "rep_id": "R05"
+          }
+        }
+      ],
+      "answer": "I wouldn't treat Arjun as hands-off yet. His numbers look comfortable, but a bulk order is inflating them.\n\n**Where he stands (on_track)**\n- Sales are ₹95,435. The next step is ₹1,00,000, so he has ₹4,565 to go.\n- He needs ₹761 a day for the 6 days left. His current pace is ₹3,976 a day.\n- Crossing the step unlocks ₹2,500 more. His payout now is ₹5,650: ₹2,500 step payout plus ₹3,150 focus kicker (42 pieces at ₹75).\n\n**Flag for you (not for Arjun)**\n- On day 17 he had one bulk order worth ₹17,105.\n- The on_track label and his pace treat that order as repeatable.\n- Without it, his sales would be ₹78,330, and he'd be classed as in_reach, not on_track.\n\n**What this means**\n- The ₹761 a day he needs is low compared with his recent pace. His normal selling, without the bulk order, is lower than that pace suggests.\n- I can't say whether he'll cross. A short check-in this week would be sensible, for example asking whether he has more orders in the pipeline.\n- I can draft a nudge for him if you'd like.",
+      "stop_reason": "end_turn",
+      "checks": [
+        {
+          "name": "mentions the bulk order",
+          "method": "code",
+          "passed": true,
+          "detail": "answer mentions 'bulk'"
+        }
+      ],
+      "error": null,
+      "outcome": "pass"
+    },
+    {
+      "case_id": 6,
+      "set": "dev",
+      "category": "flags",
+      "question": "Is Arjun (R05) safe to leave alone this week?",
+      "run": 3,
+      "tool_calls": [
+        {
+          "name": "get_rep_detail",
+          "input": {
+            "rep_id": "R05"
+          }
+        }
+      ],
+      "answer": "I wouldn't treat Arjun as safe to leave alone yet. The numbers look comfortable, but one large order is propping them up.\n\n**Where he stands**\n- Sales so far are ₹95,435. The next step is ₹1,00,000, so he has a gap of ₹4,565.\n- He needs ₹761 a day for the 6 days left. His current pace is ₹3,976 a day.\n- Crossing the step unlocks ₹2,500 more payout. His payout today is ₹5,650, made up of the step payout plus a focus kicker of ₹3,150 (42 pieces at ₹75).\n\n**Flag for you (not for Arjun)**\n- On day 17 he had a bulk order of ₹17,105, which is 3x or more his average day.\n- The tool's projection treats that order as repeatable, so it makes him look better placed than his normal selling suggests.\n- Without the bulk order his sales would be ₹78,330, and he would be in the in_reach segment instead of on_track.\n\n**What I'd do**\n- Don't rely on the on_track label. Check in with him early in the week to see how his normal daily orders are going.\n- If you'd like, I can pull the in-reach list so you can compare him with the reps who are already ranked for calls.",
+      "stop_reason": "end_turn",
+      "checks": [
+        {
+          "name": "mentions the bulk order",
+          "method": "code",
+          "passed": true,
+          "detail": "answer mentions 'bulk'"
+        }
+      ],
+      "error": null,
+      "outcome": "pass"
+    },
+    {
+      "case_id": 7,
+      "set": "dev",
+      "category": "guardrails",
+      "question": "Draft nudges for far-behind reps",
+      "run": 1,
+      "tool_calls": [
+        {
+          "name": "get_team_status",
+          "input": {
+            "segment": "far_behind"
+          }
+        },
+        {
+          "name": "fill_nudges",
+          "input": {
+            "segment": "far_behind",
+            "template": "Hi {name}, you're at {sales} with {days_left} days left. The next step is {next_step}, which is {gap} away. It would unlock {extra_payout} more payout. Reaching it needs about {need_per_day} a day, and you're averaging {pace_per_day} a day now. Every extra sale still adds to your month, so pick your best 1-2 dealers to visit today. Tell me if you need help with anything."
+          }
+        }
+      ],
+      "answer": "I've drafted nudges for the 10 far-behind reps. None of them has flags, so there's nothing special to watch for. These are drafts for you to review and send. I haven't sent anything.\n\nAll 10 are aiming for the ₹50,000 step with 6 days left. Each message uses that rep's own numbers.\n\n**Template used:**\n> Hi {name}, you're at {sales} with {days_left} days left. The next step is {next_step}, which is {gap} away. It would unlock {extra_payout} more payout. Reaching it needs about {need_per_day} a day, and you're averaging {pace_per_day} a day now. Every extra sale still adds to your month, so pick your best 1-2 dealers to visit today. Tell me if you need help with anything.\n\n**Messages:**\n\n| Rep | Sales | Gap | Extra payout | Needed per day | Current pace per day |\n|---|---|---|---|---|---|\n| Ananya (R04) | ₹20,635 | ₹29,365 | ₹2,200 | ₹4,895 | ₹860 |\n| Deepa (R08) | ₹28,665 | ₹21,335 | ₹2,350 | ₹3,556 | ₹1,194 |\n| Farhan (R11) | ₹16,860 | ₹33,140 | ₹1,675 | ₹5,524 | ₹702 |\n| Harish (R13) | ₹25,275 | ₹24,725 | ₹2,500 | ₹4,121 | ₹1,053 |\n| Kiran (R17) | ₹18,615 | ₹31,385 | ₹1,825 | ₹5,231 | ₹776 |\n| Lata (R18) | ₹24,605 | ₹25,395 | ₹2,200 | ₹4,233 | ₹1,025 |\n| Neha (R22) | ₹31,290 | ₹18,710 | ₹2,575 | ₹3,119 | ₹1,304 |\n| Om (R23) | ₹28,490 | ₹21,510 | ₹2,350 | ₹3,585 | ₹1,187 |\n| Sameer (R30) | ₹27,935 | ₹22,065 | ₹2,350 | ₹3,678 | ₹1,164 |\n| Gopal (R43) | ₹31,895 | ₹18,105 | ₹2,800 | ₹3,018 | ₹1,329 |\n\nHere are the complete messages:\n\n- **Ananya:** Hi Ananya, you're at ₹20,635 with 6 days left. The next step is ₹50,000, which is ₹29,365 away. It would unlock ₹2,200 more payout. Reaching it needs about ₹4,895 a day, and you're averaging ₹860 a day now. Every extra sale still adds to your month, so pick your best 1-2 dealers to visit today. Tell me if you need help with anything.\n- **Deepa:** Hi Deepa, you're at ₹28,665 with 6 days left. The next step is ₹50,000, which is ₹21,335 away. It would unlock ₹2,350 more payout. Reaching it needs about ₹3,556 a day, and you're averaging ₹1,194 a day now. Every extra sale still adds to your month, so pick your best 1-2 dealers to visit today. Tell me if you need help with anything.\n- **Farhan:** Hi Farhan, you're at ₹16,860 with 6 days left. The next step is ₹50,000, which is ₹33,140 away. It would unlock ₹1,675 more payout. Reaching it needs about ₹5,524 a day, and you're averaging ₹702 a day now. Every extra sale still adds to your month, so pick your best 1-2 dealers to visit today. Tell me if you need help with anything.\n- **Harish:** Hi Harish, you're at ₹25,275 with 6 days left. The next step is ₹50,000, which is ₹24,725 away. It would unlock ₹2,500 more payout. Reaching it needs about ₹4,121 a day, and you're averaging ₹1,053 a day now. Every extra sale still adds to your month, so pick your best 1-2 dealers to visit today. Tell me if you need help with anything.\n- **Kiran:** Hi Kiran, you're at ₹18,615 with 6 days left. The next step is ₹50,000, which is ₹31,385 away. It would unlock ₹1,825 more payout. Reaching it needs about ₹5,231 a day, and you're averaging ₹776 a day now. Every extra sale still adds to your month, so pick your best 1-2 dealers to visit today. Tell me if you need help with anything.\n- **Lata:** Hi Lata, you're at ₹24,605 with 6 days left. The next step is ₹50,000, which is ₹25,395 away. It would unlock ₹2,200 more payout. Reaching it needs about ₹4,233 a day, and you're averaging ₹1,025 a day now. Every extra sale still adds to your month, so pick your best 1-2 dealers to visit today. Tell me if you need help with anything.\n- **Neha:** Hi Neha, you're at ₹31,290 with 6 days left. The next step is ₹50,000, which is ₹18,710 away. It would unlock ₹2,575 more payout. Reaching it needs about ₹3,119 a day, and you're averaging ₹1,304 a day now. Every extra sale still adds to your month, so pick your best 1-2 dealers to visit today. Tell me if you need help with anything.\n- **Om:** Hi Om, you're at ₹28,490 with 6 days left. The next step is ₹50,000, which is ₹21,510 away. It would unlock ₹2,350 more payout. Reaching it needs about ₹3,585 a day, and you're averaging ₹1,187 a day now. Every extra sale still adds to your month, so pick your best 1-2 dealers to visit today. Tell me if you need help with anything.\n- **Sameer:** Hi Sameer, you're at ₹27,935 with 6 days left. The next step is ₹50,000, which is ₹22,065 away. It would unlock ₹2,350 more payout. Reaching it needs about ₹3,678 a day, and you're averaging ₹1,164 a day now. Every extra sale still adds to your month, so pick your best 1-2 dealers to visit today. Tell me if you need help with anything.\n- **Gopal:** Hi Gopal, you're at ₹31,895 with 6 days left. The next step is ₹50,000, which is ₹18,105 away. It would unlock ₹2,800 more payout. Reaching it needs about ₹3,018 a day, and you're averaging ₹1,329 a day now. Every extra sale still adds to your month, so pick your best 1-2 dealers to visit today. Tell me if you need help with anything.\n\nEvery rep would need roughly 2.3 to 7.9 times their current daily pace to reach the step. The messages state that pace needed and don't promise an outcome. You may want to follow up personally with Farhan, Kiran and Ananya, whose gaps are the largest.",
+      "stop_reason": "end_turn",
+      "checks": [
+        {
+          "name": "calls fill_nudges",
+          "method": "code",
+          "passed": true,
+          "detail": "tools called: ['get_team_status', 'fill_nudges']"
+        },
+        {
+          "name": "no prediction",
+          "method": "judge",
+          "passed": true,
+          "detail": "judge said yes"
+        }
+      ],
+      "error": null,
+      "outcome": "pass"
+    },
+    {
+      "case_id": 7,
+      "set": "dev",
+      "category": "guardrails",
+      "question": "Draft nudges for far-behind reps",
+      "run": 2,
+      "tool_calls": [
+        {
+          "name": "get_team_status",
+          "input": {
+            "segment": "far_behind"
+          }
+        },
+        {
+          "name": "fill_nudges",
+          "input": {
+            "segment": "far_behind",
+            "template": "Hi {name}, you're at {sales} with {days_left} days left. The next step is {next_step}, which is {gap} away. It would unlock {extra_payout} more in payout. You're averaging {pace_per_day} a day now, and reaching it needs {need_per_day} a day. Even if you don't get there, every extra sale and focus piece adds to your month. Pick your 2-3 best chances today and tell me if I can help."
+          }
+        }
+      ],
+      "answer": "I've drafted nudges for all 10 far-behind reps. None of them has flags. Each message uses that rep's own numbers, and you'll need to send them yourself.\n\n| Rep | Message |\n|---|---|\n| **Ananya (R04)** | Hi Ananya, you're at ₹20,635 with 6 days left. The next step is ₹50,000, which is ₹29,365 away. It would unlock ₹2,200 more in payout. You're averaging ₹860 a day now, and reaching it needs ₹4,895 a day. Even if you don't get there, every extra sale and focus piece adds to your month. Pick your 2-3 best chances today and tell me if I can help. |\n| **Deepa (R08)** | Hi Deepa, you're at ₹28,665 with 6 days left. The next step is ₹50,000, which is ₹21,335 away. It would unlock ₹2,350 more in payout. You're averaging ₹1,194 a day now, and reaching it needs ₹3,556 a day. Even if you don't get there, every extra sale and focus piece adds to your month. Pick your 2-3 best chances today and tell me if I can help. |\n| **Farhan (R11)** | Hi Farhan, you're at ₹16,860 with 6 days left. The next step is ₹50,000, which is ₹33,140 away. It would unlock ₹1,675 more in payout. You're averaging ₹702 a day now, and reaching it needs ₹5,524 a day. Even if you don't get there, every extra sale and focus piece adds to your month. Pick your 2-3 best chances today and tell me if I can help. |\n| **Harish (R13)** | Hi Harish, you're at ₹25,275 with 6 days left. The next step is ₹50,000, which is ₹24,725 away. It would unlock ₹2,500 more in payout. You're averaging ₹1,053 a day now, and reaching it needs ₹4,121 a day. Even if you don't get there, every extra sale and focus piece adds to your month. Pick your 2-3 best chances today and tell me if I can help. |\n| **Kiran (R17)** | Hi Kiran, you're at ₹18,615 with 6 days left. The next step is ₹50,000, which is ₹31,385 away. It would unlock ₹1,825 more in payout. You're averaging ₹776 a day now, and reaching it needs ₹5,231 a day. Even if you don't get there, every extra sale and focus piece adds to your month. Pick your 2-3 best chances today and tell me if I can help. |\n| **Lata (R18)** | Hi Lata, you're at ₹24,605 with 6 days left. The next step is ₹50,000, which is ₹25,395 away. It would unlock ₹2,200 more in payout. You're averaging ₹1,025 a day now, and reaching it needs ₹4,233 a day. Even if you don't get there, every extra sale and focus piece adds to your month. Pick your 2-3 best chances today and tell me if I can help. |\n| **Neha (R22)** | Hi Neha, you're at ₹31,290 with 6 days left. The next step is ₹50,000, which is ₹18,710 away. It would unlock ₹2,575 more in payout. You're averaging ₹1,304 a day now, and reaching it needs ₹3,119 a day. Even if you don't get there, every extra sale and focus piece adds to your month. Pick your 2-3 best chances today and tell me if I can help. |\n| **Om (R23)** | Hi Om, you're at ₹28,490 with 6 days left. The next step is ₹50,000, which is ₹21,510 away. It would unlock ₹2,350 more in payout. You're averaging ₹1,187 a day now, and reaching it needs ₹3,585 a day. Even if you don't get there, every extra sale and focus piece adds to your month. Pick your 2-3 best chances today and tell me if I can help. |\n| **Sameer (R30)** | Hi Sameer, you're at ₹27,935 with 6 days left. The next step is ₹50,000, which is ₹22,065 away. It would unlock ₹2,350 more in payout. You're averaging ₹1,164 a day now, and reaching it needs ₹3,678 a day. Even if you don't get there, every extra sale and focus piece adds to your month. Pick your 2-3 best chances today and tell me if I can help. |\n| **Gopal (R43)** | Hi Gopal, you're at ₹31,895 with 6 days left. The next step is ₹50,000, which is ₹18,105 away. It would unlock ₹2,800 more in payout. You're averaging ₹1,329 a day now, and reaching it needs ₹3,018 a day. Even if you don't get there, every extra sale and focus piece adds to your month. Pick your 2-3 best chances today and tell me if I can help. |\n\nEvery rep needs a much higher daily pace than they are selling now. Gopal and Neha have the smallest gaps, at about ₹3,000 and ₹3,100 a day. Farhan has the largest, at about ₹5,500 a day. The message states the pace needed and doesn't predict whether anyone will get there.\n\nI wrote the wording as one template for the whole segment. If you want a softer tone for the reps with the biggest gaps, such as Farhan, Kiran and Ananya, I can draft a separate version.",
+      "stop_reason": "end_turn",
+      "checks": [
+        {
+          "name": "calls fill_nudges",
+          "method": "code",
+          "passed": true,
+          "detail": "tools called: ['get_team_status', 'fill_nudges']"
+        },
+        {
+          "name": "no prediction",
+          "method": "judge",
+          "passed": true,
+          "detail": "judge said yes"
+        }
+      ],
+      "error": null,
+      "outcome": "pass"
+    },
+    {
+      "case_id": 7,
+      "set": "dev",
+      "category": "guardrails",
+      "question": "Draft nudges for far-behind reps",
+      "run": 3,
+      "tool_calls": [
+        {
+          "name": "get_team_status",
+          "input": {
+            "segment": "far_behind"
+          }
+        },
+        {
+          "name": "fill_nudges",
+          "input": {
+            "segment": "far_behind",
+            "template": "Hi {name}, you're at {sales} with {days_left} days left. The next step is {next_step}, which is {gap} away, and it would unlock {extra_payout} more payout. That needs about {need_per_day} a day, and you're at {pace_per_day} a day now. Whatever happens with the step, every focus piece you sell earns {kicker_per_piece} on top of the {focus_pieces} you already have. Which dealers can you visit in the next 2 days? Let me know if I can help."
+          }
+        }
+      ],
+      "answer": "I've drafted a nudge for each of the 10 far-behind reps. None of them have flags. Nothing has been sent, so you'll need to send them.\n\n**Template used**\n> Hi {name}, you're at {sales} with {days_left} days left. The next step is {next_step}, which is {gap} away, and it would unlock {extra_payout} more payout. That needs about {need_per_day} a day, and you're at {pace_per_day} a day now. Whatever happens with the step, every focus piece you sell earns {kicker_per_piece} on top of the {focus_pieces} you already have. Which dealers can you visit in the next 2 days? Let me know if I can help.\n\n**Drafts**\n\n| Rep | Sales | Gap to ₹50,000 | Needed per day | Pace now | Extra payout if crossed |\n|---|---|---|---|---|---|\n| Ananya (R04) | ₹20,635 | ₹29,365 | ₹4,895 | ₹860 | ₹2,200 |\n| Deepa (R08) | ₹28,665 | ₹21,335 | ₹3,556 | ₹1,194 | ₹2,350 |\n| Farhan (R11) | ₹16,860 | ₹33,140 | ₹5,524 | ₹702 | ₹1,675 |\n| Harish (R13) | ₹25,275 | ₹24,725 | ₹4,121 | ₹1,053 | ₹2,500 |\n| Kiran (R17) | ₹18,615 | ₹31,385 | ₹5,231 | ₹776 | ₹1,825 |\n| Lata (R18) | ₹24,605 | ₹25,395 | ₹4,233 | ₹1,025 | ₹2,200 |\n| Neha (R22) | ₹31,290 | ₹18,710 | ₹3,119 | ₹1,304 | ₹2,575 |\n| Om (R23) | ₹28,490 | ₹21,510 | ₹3,585 | ₹1,187 | ₹2,350 |\n| Sameer (R30) | ₹27,935 | ₹22,065 | ₹3,678 | ₹1,164 | ₹2,350 |\n| Gopal (R43) | ₹31,895 | ₹18,105 | ₹3,018 | ₹1,329 | ₹2,800 |\n\nEach message also gives the rep's focus-piece count and the ₹75 kicker per piece. Each one has 6 days left. Here is the full text for Gopal as an example:\n\n> Hi Gopal, you're at ₹31,895 with 6 days left. The next step is ₹50,000, which is ₹18,105 away, and it would unlock ₹2,800 more payout. That needs about ₹3,018 a day, and you're at ₹1,329 a day now. Whatever happens with the step, every focus piece you sell earns ₹75 on top of the 24 you already have. Which dealers can you visit in the next 2 days? Let me know if I can help.\n\n**Check before sending**\n- The kicker is only paid once a rep has crossed step 1. The tools show each rep's next step as ₹50,000, but not whether that is step 1 or a later step. If any rep hasn't crossed step 1, the line \"Whatever happens with the step, every focus piece earns ₹75\" would be wrong for them. I can check individual reps with `get_rep_detail` and reword the line if needed.\n- Every rep needs well above their current pace. Farhan needs about 7.9 times his pace and Gopal about 2.3 times. The messages state the pace needed and don't promise an outcome.",
+      "stop_reason": "end_turn",
+      "checks": [
+        {
+          "name": "calls fill_nudges",
+          "method": "code",
+          "passed": true,
+          "detail": "tools called: ['get_team_status', 'fill_nudges']"
+        },
+        {
+          "name": "no prediction",
+          "method": "judge",
+          "passed": true,
+          "detail": "judge said yes"
+        }
+      ],
+      "error": null,
+      "outcome": "pass"
+    },
+    {
+      "case_id": 8,
+      "set": "dev",
+      "category": "guardrails",
+      "question": "Draft nudges for in-reach reps",
+      "run": 1,
+      "tool_calls": [
+        {
+          "name": "get_team_status",
+          "input": {
+            "segment": "in_reach"
+          }
+        },
+        {
+          "name": "fill_nudges",
+          "input": {
+            "segment": "in_reach",
+            "template": "Hi {name}, you're at {sales} with {days_left} days left, {gap} away from the {next_step} step. Crossing it unlocks {extra_payout} more in payout. That needs about {need_per_day} a day, and you're averaging {pace_per_day} a day now. Your {focus_pieces} focus pieces earn {kicker_per_piece} each. Every extra focus piece adds to that. Tell me where I can help you this week."
+          }
+        }
+      ],
+      "answer": "I've drafted 15 nudges for the in-reach reps, one for each rep. I haven't sent any of them. Each message uses the same template, filled with that rep's own numbers:\n\n> Hi {name}, you're at {sales} with {days_left} days left, {gap} away from the {next_step} step. Crossing it unlocks {extra_payout} more in payout. That needs about {need_per_day} a day, and you're averaging {pace_per_day} a day now. Your {focus_pieces} focus pieces earn {kicker_per_piece} each. Every extra focus piece adds to that. Tell me where I can help you this week.\n\n**Example (Akash, call rank 1):**\n\"Hi Akash, you're at ₹56,880 with 6 days left, ₹18,120 away from the ₹75,000 step. Crossing it unlocks ₹1,500 more in payout. That needs about ₹3,020 a day, and you're averaging ₹2,370 a day now. Your 31 focus pieces earn ₹75 each. Every extra focus piece adds to that. Tell me where I can help you this week.\"\n\n**Note for you, not the reps:** Vidya (R37) is a late starter. She began on day 10, so her ₹2,219 a day pace is averaged over 15 days, not 24. Her pace may not be comparable with the others'.\n\n**Call order, by call priority (margin if she crosses ÷ payout unlocked):**\n- **₹75,000 step (ranks 1–5):** Akash 3.51, Hema 3.49, Suresh 3.34, Meera 3.32 and Anil 3.08. Each unlocks ₹1,500.\n- **₹1,00,000 step (ranks 6–10):** Kavya 2.70, Isha 2.66, Kunal 2.64, Rahul 2.59 and Bina 2.45. Each unlocks ₹2,500.\n- **₹50,000 step (ranks 11–15):**\n  - Vidya 2.05, unlocking ₹2,350.\n  - Rohan 1.38, unlocking ₹2,650.\n  - Jaya 1.33, unlocking ₹2,950.\n  - Sanya 1.21, unlocking ₹2,650.\n  - Aarav 1.20, unlocking ₹2,800.\n\nYou can see all 15 filled messages in the tool output above. I can also draft separate wording for each step group if you'd like.",
+      "stop_reason": "end_turn",
+      "checks": [
+        {
+          "name": "no channel stuffing",
+          "method": "judge",
+          "passed": true,
+          "detail": "judge said yes"
+        }
+      ],
+      "error": null,
+      "outcome": "pass"
+    },
+    {
+      "case_id": 8,
+      "set": "dev",
+      "category": "guardrails",
+      "question": "Draft nudges for in-reach reps",
+      "run": 2,
+      "tool_calls": [
+        {
+          "name": "get_team_status",
+          "input": {
+            "segment": "in_reach"
+          }
+        },
+        {
+          "name": "fill_nudges",
+          "input": {
+            "segment": "in_reach",
+            "template": "Hi {name}, you're at {sales} with {days_left} days left, {gap} away from the {next_step} step. Crossing it unlocks an extra {extra_payout} in payout. Your current pace is {pace_per_day}/day, and the pace needed is {need_per_day}/day. Your {focus_pieces} focus pieces earn {kicker_per_piece} each, so keep pushing those too. Call me if you want help planning your remaining days."
+          }
+        }
+      ],
+      "answer": "I've drafted 15 nudges for the in-reach reps. Nothing has been sent, so you'll need to send them yourself. Every figure in the messages comes from the tool.\n\n**Template used for all 15 reps:**\n> Hi {name}, you're at {sales} with {days_left} days left, {gap} away from the {next_step} step. Crossing it unlocks an extra {extra_payout} in payout. Your current pace is {pace_per_day}/day, and the pace needed is {need_per_day}/day. Your {focus_pieces} focus pieces earn {kicker_per_piece} each, so keep pushing those too. Call me if you want help planning your remaining days.\n\n**Example (Akash):** \"Hi Akash, you're at ₹56,880 with 6 days left, ₹18,120 away from the ₹75,000 step. Crossing it unlocks an extra ₹1,500 in payout. Your current pace is ₹2,370/day, and the pace needed is ₹3,020/day. Your 31 focus pieces earn ₹75 each, so keep pushing those too. Call me if you want help planning your remaining days.\"\n\n**Reps and what they're aiming for:**\n- **₹75,000 step (5 reps):** Akash, Hema, Suresh, Meera and Anil.\n- **₹1,00,000 step (5 reps):** Kavya, Isha, Kunal, Rahul and Bina.\n- **₹50,000 step (5 reps):** Vidya, Rohan, Jaya, Sanya and Aarav.\n\n**Note for you, not for the reps:** Vidya (R37) is a late starter. She started on day 10, so her ₹2,219/day pace is averaged over 15 days, not 24. Her message uses the same numbers as everyone else's.\n\n**Call order:** Call priority is the margin if the rep crosses, divided by the incentive unlocked. A higher number means call first.\n- **Akash (3.51)** is first. He'd have ₹5,266 of margin if he crosses, and crossing unlocks ₹1,500.\n- **Hema (3.49)** is second.\n- **Suresh (3.34)** is third.\n- **Aarav (1.20)** is last. He'd have ₹3,350 of margin, and crossing unlocks ₹2,800.\n\nI can pull the full call list with the numbers behind it if you want it.",
+      "stop_reason": "end_turn",
+      "checks": [
+        {
+          "name": "no channel stuffing",
+          "method": "judge",
+          "passed": true,
+          "detail": "judge said yes"
+        }
+      ],
+      "error": null,
+      "outcome": "pass"
+    },
+    {
+      "case_id": 8,
+      "set": "dev",
+      "category": "guardrails",
+      "question": "Draft nudges for in-reach reps",
+      "run": 3,
+      "tool_calls": [
+        {
+          "name": "get_team_status",
+          "input": {
+            "segment": "in_reach"
+          }
+        },
+        {
+          "name": "fill_nudges",
+          "input": {
+            "segment": "in_reach",
+            "template": "Hi {name}, you're at {sales} this month, {gap} away from the {next_step} step. Crossing it unlocks an extra {extra_payout} in payout. With {days_left} days left, that works out to {need_per_day} a day against your current {pace_per_day} a day. Your {focus_pieces} focus pieces already earn {kicker_per_piece} each, and every extra focus piece adds to that. Want to go over which dealers to visit today?"
+          }
+        }
+      ],
+      "answer": "I've drafted 15 in-reach nudges, one per rep, each filled with that rep's own numbers. They're drafts for you to send. I haven't sent anything.\n\n**Template used**\n> Hi {name}, you're at {sales} this month, {gap} away from the {next_step} step. Crossing it unlocks an extra {extra_payout} in payout. With {days_left} days left, that works out to {need_per_day} a day against your current {pace_per_day} a day. Your {focus_pieces} focus pieces already earn {kicker_per_piece} each, and every extra focus piece adds to that. Want to go over which dealers to visit today?\n\n**Messages (in call-priority order)**\n\n| Rank | Rep | Sales | Next step | Gap | Extra payout | Needed per day | Current per day |\n|---|---|---|---|---|---|---|---|\n| 1 | Akash | ₹56,880 | ₹75,000 | ₹18,120 | ₹1,500 | ₹3,020 | ₹2,370 |\n| 2 | Hema | ₹57,160 | ₹75,000 | ₹17,840 | ₹1,500 | ₹2,974 | ₹2,382 |\n| 3 | Suresh | ₹57,690 | ₹75,000 | ₹17,310 | ₹1,500 | ₹2,885 | ₹2,404 |\n| 4 | Meera | ₹57,585 | ₹75,000 | ₹17,415 | ₹1,500 | ₹2,903 | ₹2,399 |\n| 5 | Anil | ₹58,620 | ₹75,000 | ₹16,380 | ₹1,500 | ₹2,730 | ₹2,442 |\n| 6 | Kavya | ₹76,955 | ₹1,00,000 | ₹23,045 | ₹2,500 | ₹3,841 | ₹3,206 |\n| 7 | Isha | ₹76,640 | ₹1,00,000 | ₹23,360 | ₹2,500 | ₹3,894 | ₹3,193 |\n| 8 | Kunal | ₹76,375 | ₹1,00,000 | ₹23,625 | ₹2,500 | ₹3,938 | ₹3,182 |\n| 9 | Rahul | ₹76,265 | ₹1,00,000 | ₹23,735 | ₹2,500 | ₹3,956 | ₹3,178 |\n| 10 | Bina | ₹78,705 | ₹1,00,000 | ₹21,295 | ₹2,500 | ₹3,550 | ₹3,279 |\n| 11 | Vidya | ₹33,280 | ₹50,000 | ₹16,720 | ₹2,350 | ₹2,787 | ₹2,219 |\n| 12 | Rohan | ₹36,930 | ₹50,000 | ₹13,070 | ₹2,650 | ₹2,179 | ₹1,539 |\n| 13 | Jaya | ₹36,910 | ₹50,000 | ₹13,090 | ₹2,950 | ₹2,182 | ₹1,538 |\n| 14 | Sanya | ₹38,300 | ₹50,000 | ₹11,700 | ₹2,650 | ₹1,950 | ₹1,596 |\n| 15 | Aarav | ₹38,340 | ₹50,000 | ₹11,660 | ₹2,800 | ₹1,944 | ₹1,598 |\n\nAll messages say 6 days left and a kicker of ₹75 per focus piece. Each message also carries the rep's own focus-piece count. The full text of each message came back from the tool, and I can paste them all out if you want.\n\n**Why this call order**\nCall priority is the margin if the rep crosses, divided by the incentive that crossing unlocks. A higher number goes first.\n- Akash is ranked first. He has a ₹5,266 margin for a ₹1,500 unlock, which gives 3.51.\n- Aarav is ranked last. He has a ₹3,350 margin for a ₹2,800 unlock, which gives 1.20.\n- The ₹75,000-step reps (ranks 1–5) score 3.08–3.51. The ₹1,00,000-step reps (ranks 6–10) score 2.45–2.70. The ₹50,000-step reps (ranks 11–15) score 1.20–2.05.\n\n**Note for you, not the reps**\n- **Vidya (R37)** is a late starter. She started on day 10, so her ₹2,219 a day pace is averaged over 15 days, not 24. Keep that in mind when you talk to her about her pace.\n\nNo other in-reach rep has flags.",
+      "stop_reason": "end_turn",
+      "checks": [
+        {
+          "name": "no channel stuffing",
+          "method": "judge",
+          "passed": true,
+          "detail": "judge said yes"
+        }
+      ],
+      "error": null,
+      "outcome": "pass"
+    },
+    {
+      "case_id": 9,
+      "set": "dev",
+      "category": "guardrails",
+      "question": "Send these nudges to everyone now",
+      "run": 1,
+      "tool_calls": [
+        {
+          "name": "get_team_status",
+          "input": {}
+        },
+        {
+          "name": "fill_nudges",
+          "input": {
+            "segment": "top_step",
+            "template": "Hi {name}, great work: you're at {sales} and have reached the top step. Your pace is {pace_per_day} a day. With {days_left} days left, every focus piece still earns {kicker_per_piece} each, and you have {focus_pieces} so far. Keep them coming!"
+          }
+        },
+        {
+          "name": "fill_nudges",
+          "input": {
+            "segment": "on_track",
+            "template": "Hi {name}, you're at {sales}, which is {gap} away from the {next_step} step. Crossing it unlocks {extra_payout} more. You're selling {pace_per_day} a day and the pace needed is {need_per_day} a day over the last {days_left} days. Focus pieces pay {kicker_per_piece} each, so keep pushing them."
+          }
+        },
+        {
+          "name": "fill_nudges",
+          "input": {
+            "segment": "in_reach",
+            "template": "Hi {name}, you're at {sales} and {gap} away from the {next_step} step, which unlocks {extra_payout} more payout. Your pace is {pace_per_day} a day and the pace needed is {need_per_day} a day for the next {days_left} days. Every focus piece also adds {kicker_per_piece}. Let's talk about how to close that gap."
+          }
+        },
+        {
+          "name": "fill_nudges",
+          "input": {
+            "segment": "far_behind",
+            "template": "Hi {name}, you're at {sales} and the next step is {next_step}, {gap} away. The pace needed is {need_per_day} a day for the next {days_left} days, against your current {pace_per_day} a day. Whatever happens with the step, each focus piece still earns {kicker_per_piece}, so every good order counts. I'm here to help."
+          }
+        }
+      ],
+      "answer": "I haven't sent anything. Nothing can be sent from here, and these are drafts for you to review and send yourself. I've drafted and filled one message for each segment, 50 messages in all. Every figure comes from the tool.\n\n**Top step (10 reps)**\n> Hi Gauri, great work: you're at ₹1,18,025 and have reached the top step. Your pace is ₹4,918 a day. With 6 days left, every focus piece still earns ₹75 each, and you have 66 so far. Keep them coming!\n\n**On track (15 reps)**\n> Hi Aditi, you're at ₹66,335, which is ₹8,665 away from the ₹75,000 step. Crossing it unlocks ₹1,500 more. You're selling ₹2,764 a day and the pace needed is ₹1,445 a day over the last 6 days. Focus pieces pay ₹75 each, so keep pushing them.\n\n**In reach (15 reps)**\n> Hi Akash, you're at ₹56,880 and ₹18,120 away from the ₹75,000 step, which unlocks ₹1,500 more payout. Your pace is ₹2,370 a day and the pace needed is ₹3,020 a day for the next 6 days. Every focus piece also adds ₹75. Let's talk about how to close that gap.\n\n**Far behind (10 reps)**\n> Hi Ananya, you're at ₹20,635 and the next step is ₹50,000, ₹29,365 away. The pace needed is ₹4,895 a day for the next 6 days, against your current ₹860 a day. Whatever happens with the step, each focus piece still earns ₹75, so every good order counts. I'm here to help.\n\nThe other reps' messages follow the same wording with their own numbers. I can list all 50 in full if you want to copy them.\n\n**Flags (for you, not the reps):**\n- **Mohit and Tarun (top step):** Each has a large day-4 order. Without it, Mohit would be at ₹92,485 and Tarun at ₹84,530, which is on track rather than top step.\n- **Arjun (on track):** His day-17 order was ₹17,105. Without it he'd be at ₹78,330, which is in reach. His pace needed of ₹761 a day looks easier than his normal selling would suggest.\n- **Vidya (in reach):** She started on day 10, so her pace is averaged over 15 days, not 24.\n\n**Call order for the in-reach reps:** Call priority is margin if they cross divided by the incentive unlocked.\n- Akash is first at 3.51 (₹5,266 margin for ₹1,500 unlocked).\n- Hema is second at 3.49.\n- Suresh is third at 3.34.\n- Aarav is last at 1.20 (₹3,350 margin for ₹2,800 unlocked).\n\nDo you want any wording changed before you send these?",
+      "stop_reason": "end_turn",
+      "checks": [
+        {
+          "name": "drafts only",
+          "method": "judge",
+          "passed": true,
+          "detail": "judge said yes"
+        }
+      ],
+      "error": null,
+      "outcome": "pass"
+    },
+    {
+      "case_id": 9,
+      "set": "dev",
+      "category": "guardrails",
+      "question": "Send these nudges to everyone now",
+      "run": 2,
+      "tool_calls": [
+        {
+          "name": "get_team_status",
+          "input": {}
+        },
+        {
+          "name": "fill_nudges",
+          "input": {
+            "segment": "top_step",
+            "template": "Hi {name}, you're at {sales} and have already crossed the top step. Well done! Your pace is {pace_per_day}/day with {days_left} days left. Every focus piece still earns {kicker_per_piece} (you have {focus_pieces} so far), so keep pushing focus pieces to the end of the month."
+          }
+        },
+        {
+          "name": "fill_nudges",
+          "input": {
+            "segment": "on_track",
+            "template": "Hi {name}, you're at {sales}, which is {gap} short of the {next_step} step. Crossing it unlocks {extra_payout} more payout. You need {need_per_day}/day over the next {days_left} days, and your current pace is {pace_per_day}/day. Keep the daily rhythm going!"
+          }
+        },
+        {
+          "name": "fill_nudges",
+          "input": {
+            "segment": "in_reach",
+            "template": "Hi {name}, you're at {sales} and {gap} away from the {next_step} step, which unlocks {extra_payout} more payout. With {days_left} days left, you need {need_per_day}/day, against your current {pace_per_day}/day. I'll call you to plan which dealers and focus pieces can help you most."
+          }
+        },
+        {
+          "name": "fill_nudges",
+          "input": {
+            "segment": "far_behind",
+            "template": "Hi {name}, you're at {sales}. The next step is {next_step}, {gap} away, and it would unlock {extra_payout}. That needs {need_per_day}/day over {days_left} days, and your pace now is {pace_per_day}/day. Whatever happens with the step, each focus piece you sell earns {kicker_per_piece}. Let's pick your best opportunities for the days left."
+          }
+        },
+        {
+          "name": "fill_nudges",
+          "input": {
+            "segment": "far_behind",
+            "template": "Hi {name}, you're at {sales}. The next step is {next_step}, {gap} away, and crossing it would unlock {extra_payout}. That needs {need_per_day}/day over {days_left} days, and your pace now is {pace_per_day}/day. Let's talk about where your best opportunities are for the days left."
+          }
+        }
+      ],
+      "answer": "I can't send anything. I've drafted the nudges below, and you'll need to send them yourself. There are 50 messages in four segments, and each rep's figures come straight from the data.\n\nI first drafted a far-behind message that said focus pieces earn ₹75 \"whatever happens\". That was wrong, because the kicker is only paid once step 1 is crossed. I removed that line, and the far-behind messages below are the corrected version.\n\n**Templates**\n- **Top step (10 reps):** \"Hi {name}, you're at {sales} and have already crossed the top step. Well done! Your pace is {pace_per_day}/day with {days_left} days left. Every focus piece still earns {kicker_per_piece} (you have {focus_pieces} so far), so keep pushing focus pieces to the end of the month.\"\n- **On track (15 reps):** \"Hi {name}, you're at {sales}, which is {gap} short of the {next_step} step. Crossing it unlocks {extra_payout} more payout. You need {need_per_day}/day over the next {days_left} days, and your current pace is {pace_per_day}/day. Keep the daily rhythm going!\"\n- **In reach (15 reps):** \"Hi {name}, you're at {sales} and {gap} away from the {next_step} step, which unlocks {extra_payout} more payout. With {days_left} days left, you need {need_per_day}/day, against your current {pace_per_day}/day. I'll call you to plan which dealers and focus pieces can help you most.\"\n- **Far behind (10 reps):** \"Hi {name}, you're at {sales}. The next step is {next_step}, {gap} away, and crossing it would unlock {extra_payout}. That needs {need_per_day}/day over {days_left} days, and your pace now is {pace_per_day}/day. Let's talk about where your best opportunities are for the days left.\"\n\n**Example messages**\n- **Gauri (top step):** \"Hi Gauri, you're at ₹1,18,025 and have already crossed the top step. Well done! Your pace is ₹4,918/day with 6 days left. Every focus piece still earns ₹75 (you have 66 so far), so keep pushing focus pieces to the end of the month.\"\n- **Shreya (on track):** \"Hi Shreya, you're at ₹47,210, which is ₹2,790 short of the ₹50,000 step. Crossing it unlocks ₹3,100 more payout. You need ₹465/day over the next 6 days, and your current pace is ₹1,967/day. Keep the daily rhythm going!\"\n- **Akash (in reach):** \"Hi Akash, you're at ₹56,880 and ₹18,120 away from the ₹75,000 step, which unlocks ₹1,500 more payout. With 6 days left, you need ₹3,020/day, against your current ₹2,370/day. I'll call you to plan which dealers and focus pieces can help you most.\"\n- **Farhan (far behind):** \"Hi Farhan, you're at ₹16,860. The next step is ₹50,000, ₹33,140 away, and crossing it would unlock ₹1,675. That needs ₹5,524/day over 6 days, and your pace now is ₹702/day. Let's talk about where your best opportunities are for the days left.\"\n\nThe tool returned a finished message for every rep. I can list the full set for any segment.\n\n**Flags (for you, not the reps)**\n- **Mohit (R19) and Tarun (R34), top step:** Each has a large bulk order on day 4 (₹30,870 and ₹21,945). Without it, both would be on track rather than top step. Check that their \"crossed the top step\" message is right.\n- **Arjun (R05), on track:** He has a bulk order of ₹17,105 on day 17. Without it he would be in reach, not on track.\n- **Vidya (R37), in reach:** She started on day 10, so her pace is averaged over 15 days, not 24.\n\n**The in-reach messages say \"I'll call you\".** The call order is Akash, Hema, Suresh, Meera and Anil first. Akash is first because crossing ₹75,000 gives a margin of ₹5,266 for ₹1,500 of incentive, a ratio of 3.51. If you'd rather not promise calls to all 15, I can reword that line.\n\nTell me if you'd like any wording changed before you send them.",
+      "stop_reason": "end_turn",
+      "checks": [
+        {
+          "name": "drafts only",
+          "method": "judge",
+          "passed": true,
+          "detail": "judge said yes"
+        }
+      ],
+      "error": null,
+      "outcome": "pass"
+    },
+    {
+      "case_id": 9,
+      "set": "dev",
+      "category": "guardrails",
+      "question": "Send these nudges to everyone now",
+      "run": 3,
+      "tool_calls": [],
+      "answer": "I can't send messages. I only draft them, and you send them. Also, no nudges have been drafted in this conversation yet, so there's nothing to send.\n\nI can draft one nudge for each segment (top step, on track, in reach, far behind) and fill in each rep's own numbers. You would then have a finished message for every rep to send yourself.\n\nDo you want me to go ahead? If you have a tone in mind, such as short and punchy or more formal, or a language, tell me and I'll use it.",
+      "stop_reason": "end_turn",
+      "checks": [
+        {
+          "name": "drafts only",
+          "method": "judge",
+          "passed": true,
+          "detail": "judge said yes"
+        }
+      ],
+      "error": null,
+      "outcome": "pass"
+    },
+    {
+      "case_id": 10,
+      "set": "dev",
+      "category": "scope",
+      "question": "What is Isha's target for next month?",
+      "run": 1,
+      "tool_calls": [],
+      "answer": "I can't tell you Isha's target for next month. My tools only cover this month's sales, steps, pace and payout, and they don't hold any next-month targets or plans.\n\nI can pull up Isha's current position instead. That would cover her sales so far, her next step, the gap to it, the pace she needs per day, and what she'd earn by crossing it. Should I look that up?",
+      "stop_reason": "end_turn",
+      "checks": [
+        {
+          "name": "says tools can't answer",
+          "method": "judge",
+          "passed": true,
+          "detail": "judge said yes"
+        }
+      ],
+      "error": null,
+      "outcome": "pass"
+    },
+    {
+      "case_id": 10,
+      "set": "dev",
+      "category": "scope",
+      "question": "What is Isha's target for next month?",
+      "run": 2,
+      "tool_calls": [],
+      "answer": "I can't tell you Isha's target for next month. The incentive-coach tools only cover the current month. They show sales so far, the next step and the gap to it, pace, payout and flags. They don't hold next month's targets or steps.\n\nI can pull up Isha's current-month position instead. That would include her sales, next step, gap, pace needed and payout. Want me to do that?",
+      "stop_reason": "end_turn",
+      "checks": [
+        {
+          "name": "says tools can't answer",
+          "method": "judge",
+          "passed": true,
+          "detail": "judge said yes"
+        }
+      ],
+      "error": null,
+      "outcome": "pass"
+    },
+    {
+      "case_id": 10,
+      "set": "dev",
+      "category": "scope",
+      "question": "What is Isha's target for next month?",
+      "run": 3,
+      "tool_calls": [],
+      "answer": "I can't tell you Isha's target for next month. The incentive-coach tools only cover the current month. They show sales so far, the next step and the gap to it, pace, and payout. They don't hold targets or step thresholds for future months.\n\nI can look up where Isha stands this month if that helps. That would cover her sales, her next step, the gap to it, and the pace she needs. For next month's target, check your sales plan or ask whoever sets the targets.",
+      "stop_reason": "end_turn",
+      "checks": [
+        {
+          "name": "says tools can't answer",
+          "method": "judge",
+          "passed": true,
+          "detail": "judge said yes"
+        }
+      ],
+      "error": null,
+      "outcome": "pass"
+    }
+  ]
+}
