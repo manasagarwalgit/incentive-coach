@@ -160,6 +160,20 @@ claude mcp get incentive-coach            # should show: Status: ✔ Connected
 
 Then start `claude` and ask, for example, "Who should I call today?". The agent rules are in `agent/CLAUDE.md`.
 
+## Run the demo app
+
+A mobile-first web page over the same agent the evals test: `run_agent` from `evals/run.py`, the five tools from `server/main.py`, and `agent/CLAUDE.md` as the system prompt. The app adds no business logic. The call-list and nudge cards show the tools' own results.
+
+```bash
+uv run python app/main.py
+```
+
+It serves on port 8000 on your local network and prints two URLs: one for this computer and one for a phone on the same Wi-Fi. It needs `ANTHROPIC_API_KEY` in `.env`, and each question makes paid API calls.
+
+- **Synthetic data:** the same 50 made-up reps as everywhere else in this repo.
+- **Drafts only:** each nudge card has "Copy" and "Open in WhatsApp". The WhatsApp link opens a share sheet with the text filled in and no number chosen. The manager picks the chat and presses send. The app never sends anything.
+- **Limits:** 10 questions per browser session, and 8,000 max tokens per model call. Each question is answered on its own, with no memory of earlier ones.
+
 ## Repo map
 
 | Path | What it is |
@@ -175,6 +189,7 @@ Then start `claude` and ask, for example, "Who should I call today?". The agent 
 | `evals/rescore.py` | Re-scores saved results with the current checks, without API calls |
 | `evals/judge_canaries.py` | Bad answers the judge must fail |
 | `evals/results/` | Every saved eval run, as JSON |
+| `app/` | The mobile demo app (FastAPI backend, one HTML page) |
 | `docs/PRD.md` | Problem, users, scheme rules, decisions, metrics |
 | `docs/TOOLS.md` | Tool inputs, outputs and design choices |
 | `docs/DATA.md` | How the synthetic data is built |

@@ -128,8 +128,10 @@ def is_account_error(e):
 # Running the agent on one question
 # ---------------------------------------------------------------------------
 
-def run_agent(client, tools, system_prompt, question):
+def run_agent(client, tools, system_prompt, question, max_tokens=16000):
     """Run the agent until it gives a final answer.
+
+    max_tokens caps each model call; the demo app (app/main.py) passes a lower cap.
 
     Returns {"tool_calls": [{"name", "input"}...], "answer": str, "stop_reason": str}.
     """
@@ -141,7 +143,7 @@ def run_agent(client, tools, system_prompt, question):
         response = create_message(
             client,
             model=AGENT_MODEL,
-            max_tokens=16000,
+            max_tokens=max_tokens,
             system=system_prompt,
             tools=tools,
             messages=messages,
