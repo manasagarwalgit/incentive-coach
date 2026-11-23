@@ -1,3 +1,7 @@
+
+https://github.com/user-attachments/assets/9203b0b9-f291-43e7-b7c7-04c80183d457
+
+
 # Incentive Coach
 
 An AI agent that tells a field sales manager which reps to call at month-end, and drafts an honest, number-backed nudge for every rep.
